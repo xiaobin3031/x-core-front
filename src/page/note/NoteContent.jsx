@@ -2,20 +2,22 @@ import './Note.css'
 import {useRef, useState} from "react";
 import Util from "../util/util.js";
 import constant from "./constant.js";
+import ajax from "../util/ajax.js";
 
 function NoteContent({note}) {
 
-  const [contentList, setContentList] = useState(note.contentList);
+  const [contentList, setContentList] = useState(() => {
+    ajax.get('/note-content/list', {noteId: note.id}).then(res => {
+      setContentList(res.data || []);
+    })
+  });
   const inputDom = useRef(null);
 
-  function initTodoContent(texts){
+  function initTodoContent(texts) {
     return {
-      id: Util.gId(),
       type: constant.note_type_todo,
       content: texts.slice(1).join(' '),
-      props: {
-        checked: false
-      }
+      checked: false
     }
   }
 
@@ -56,35 +58,69 @@ function NoteContent({note}) {
     if (!content) {
       content = {content: val, type: constant.note_type_text};
     }
-    !!content.id && (content.id = Util.gId());
-    setContentList([...contentList, content]);
-    e.target.value = '';
+    ajax.post('/note-content/add', content).then(res => {
+      if (res.code === 0) {
+        content.id = res.data.id;
+        setContentList([...contentList, content]);
+        e.target.value = '';
+      }
+    })
   }
 
   function todoContentChange(e, item) {
     e.stopPropagation()
-    item.content = e.target.value;
-    setContentList([...contentList])
+    const val = e.target.value
+    if (val !== item.content) {
+      ajax.post('/note-content/update', {id: item.id, content: val}).then(res => {
+        if (res.code === 0) {
+          item.content = e.target.value;
+          setContentList([...contentList])
+        }
+      })
+    }
   }
 
   function enterToSaveTodoContent(e, contents, index, item) {
     e.stopPropagation()
     if (e.keyCode === 13) {
-      item.content = e.target.value;
-      contents.splice(index + 1, 0, initTodoContent([]))
-      setContentList([...contentList])
-    }else if(e.keyCode === 8){
-      if(!e.target.value){
-        contents.splice(index, 1);
+      if (item.content !== e.target.value) {
+        item.content = e.target.value;
+      }
+      const newContent = initTodoContent([])
+      newContent.afterId = item.id;
+
+      Promise.all([ajax.post('/note-content/update', item), ajax.post('/note-content/add', newContent)]).then(([res1, res2]) => {
+        if (res2.code === 0) {
+          newContent.id = res2.data.id;
+          contents.splice(index + 1, 0, newContent)
+        }
         setContentList([...contentList])
+      });
+    } else if (e.keyCode === 8) {
+      if (!e.target.value) {
+        ajax.post('/note-content/update', {id: item.id, deleted: true}).then(res => {
+          if (res.code === 0) {
+            contents.splice(index, 1);
+            setContentList([...contentList])
+          }
+        })
       }
     }
+  }
+
+  function todoCheckChange(item) {
+    ajax.post('/note-content/update', {id: item.id, checked: !item.checked}).then(res => {
+      if (res.code === 0) {
+        item.checked = !item.checked;
+        setContentList([...contentList])
+      }
+    })
   }
 
   function renderItemDom(contents) {
     return <>
       {
-        contents.map((a, index) => {
+        !!contents && contents.map((a, index) => {
           return (
             <div key={a.id} className={`note-content-list-item item-${a.type}`} onClick={e => e.stopPropagation()}>
               {a.type === constant.note_type_page && <div>{a.content}</div>}
@@ -92,7 +128,7 @@ function NoteContent({note}) {
               {
                 a.type === constant.note_type_todo &&
                 <>
-                  <input type='checkbox' checked={!!a.props.checked}/>
+                  <input type='checkbox' checked={!!a.checked} onChange={e => todoCheckChange(a)}/>
                   <input type='text' defaultValue={a.content}
                          onBlur={e => todoContentChange(e, a)}
                          onKeyUp={e => enterToSaveTodoContent(e, contents, index, a)}/>
@@ -136,6 +172,9 @@ function NoteContent({note}) {
 
   return (
     <div className='note-content-main' onClick={focusInput}>
+      <div className='note-content-head'>
+        <div className='note-content-head-title'>{note.name}</div>
+      </div>
       <div className='note-content-list'>
         {renderItemDom(contentList)}
       </div>

@@ -1,10 +1,17 @@
 import {useState} from "react";
 import NoteContent from "./NoteContent.jsx";
 import Util from "../util/util.js";
+import ajax from "../util/ajax.js";
 
 function Note() {
 
-  const [noteList, setNoteList] = useState([])
+  const [noteList, setNoteList] = useState(() => {
+    ajax.get('/note/list').then(res => {
+      const list = res.data || []
+      fillNote(list);
+      setNoteList(list)
+    })
+  })
   const [note, setNote] = useState(void 0)
 
   function createNotePage(e) {
@@ -16,16 +23,31 @@ function Note() {
     if (!value) return;
 
     if (noteList.every(a => a.name !== value)) {
-      setNoteList([...noteList, {name: value, id: Util.gId(), children: [], contentList: []}])
+      ajax.post('/note/add', {name: value}).then(res => {
+        if(res.code === 0){
+          const note = {name: value, id: Util.gId()}
+          fillNote([note])
+          setNoteList([...noteList, note])
+        }
+      })
     }
 
     e.target.value = '';
   }
 
+  function fillNote(notes){
+    if(!!notes && notes.length > 0){
+      notes.forEach(n => {
+        !n.children && (n.children = [])
+        !n.contentList && (n.contentList = [])
+      })
+    }
+  }
+
   function renderItem(notes, level) {
     return <>
       {
-        notes.map(a => {
+        !!notes && notes.map(a => {
           return (
             <div key={a.id} className='note-navs-list-item' onClick={() => setNote(a)}>
               {a.name}
