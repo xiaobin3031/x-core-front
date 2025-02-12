@@ -39,7 +39,7 @@
 
 .note-content-main {
     --item-font-size: 1.3em;
-    --content-top: 80px;
+    --content-top: 30px;
     width: 100%;
     height: calc(100% - var(--content-top));
     margin-right: 10px;
@@ -51,10 +51,14 @@
         font-size: 2.5em;
         font-weight: bold;
         margin-bottom: 20px;
+        height: 70px;
     }
 
     & .note-content-list {
         padding-left: 20px;
+        max-height: calc(100% - 130px - var(--content-top));
+        box-sizing: border-box;
+        overflow-y: scroll;
     }
 
     & input {
@@ -70,19 +74,57 @@
     & .note-content-list-item {
     }
 
+    & .note-content-list-item.has-margin {
+        margin-top: 20px;
+    }
+
     & .item-1 {
         /* _page_ */
         font-size: 1.3em;
     }
 
-    & .item-2 > table {
+    & .item-2 table {
         /* _table_ */
         border-collapse: collapse;
         border-spacing: 0;
 
+        & tr {
+            min-height: 50px;
+        }
+
         & th, td {
-            border: 1px solid black;
-            padding: 10px 15px;
+            border: 1px solid #c3c3c3c3;
+            padding: 3px 5px;
+            position: relative;
+        }
+
+        & input[type="text"] {
+            width: 200px;
+            outline-style: none;
+            border-style: none;
+        }
+
+        & th > input[type="text"] {
+            text-align: center;
+        }
+
+        & th > .table-add-field{
+            position: absolute;
+            display: flex;
+            background-color: #cccccc55;
+            height: 100%;
+            align-items: center;
+            padding-left: 3px;
+            padding-right: 3px;
+        }
+        & th > .table-add-field:first-child {
+            top: 0;
+            left: 0;
+        }
+
+        & th > .table-add-field:last-child {
+            top: 0;
+            right: 0;
         }
     }
 
