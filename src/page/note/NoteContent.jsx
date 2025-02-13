@@ -204,7 +204,7 @@ function NoteContent({note}) {
   function tableDataChange(e, item, index) {
     e.stopPropagation()
     const datas = [...item.datas]
-    datas[index] = e.target.value
+    datas[index] = e.target.innerText
     ajax.post('/note-content/table-data-update', {id: item.id, datas: JSON.stringify(datas)}).then(res => {
       if (res.code === 0) {
         item.datas = [...datas]
@@ -213,8 +213,8 @@ function NoteContent({note}) {
     })
   }
 
-  function sortList(list){
-    if(!!list){
+  function sortList(list) {
+    if (!!list) {
       list.sort((a, b) => a.id - b.id);
       const newContents = [], hasAfterIdContents = [];
       list.forEach(a => {
@@ -258,6 +258,49 @@ function NoteContent({note}) {
     return list;
   }
 
+  function addHead(item, index, before) {
+    ajax.post('/note-content/table-add-field', {
+      id: item.id,
+      index: index,
+      before: before
+    }).then(res => {
+      if (res.code === 0) {
+        item.heads = JSON.parse(res.data.noteContent.heads);
+        item.orders = JSON.parse(res.data.noteContent.orders);
+        item.datas = [...res.data.datas]
+        item.datas.forEach(a => a.datas = JSON.parse(a.datas))
+        setContentList([...contentList])
+      }
+    })
+  }
+
+  function delHead(item, index) {
+    const newItem = {
+      id: item.id,
+      orders: [...item.orders]
+    }
+    newItem.orders[index] = -1;
+    newItem.orders = JSON.stringify(newItem.orders);
+    ajax.post('/note-content/update', newItem).then(res => {
+      if (res.code === 0) {
+        item.orders[index] = -1;
+        setContentList([...contentList])
+      }
+    })
+  }
+
+  function tableDataKeyChange(e, item, index){
+    key.onEnter(e, () => {
+      e.stopPropagation()
+      e.preventDefault()
+      let txt = e.target.innerText
+      const selectedIndex = e.target.selectedIndex
+      txt = txt.substring(0, selectedIndex) + '%n' + txt.substring(selectedIndex);
+      item.datas[index] = txt
+      setContentList([...contentList])
+    })
+  }
+
   function renderItemDom(contents) {
     // 做一次排序
     contents = sortList(contents);
@@ -296,10 +339,12 @@ function NoteContent({note}) {
                   <tr>
                     {
                       a.orders.filter(o => o > -1).map(o => {
-                        return <th key={`table-head-${o}`}>
-                          <div className='table-add-field'>+</div>
-                          <input type='text' defaultValue={a.heads[o]} onBlur={e => headNameChange(e, a, o)}/>
-                          <div className='table-add-field'>+</div>
+                        return <th key={`table-head-${o}-${a.heads[o]}`}>
+                          <div className='table-field-option del' onClick={() => delHead(a, o)}>-</div>
+                          <div className='table-field-option add-before' onClick={() => addHead(a, o, true)}>+</div>
+                          <input type='text' defaultValue={a.heads[o]}
+                                 onBlur={e => headNameChange(e, a, o)}/>
+                          <div className='table-field-option add-after' onClick={() => addHead(a, o, false)}>+</div>
                         </th>
                       })
                     }
@@ -313,8 +358,11 @@ function NoteContent({note}) {
                           {
                             a.orders.filter(o => o > -1).map(o => {
                               return <td key={`table-data-${data.id}-${o}`}>
-                                <input type='text' defaultValue={data.datas[o]}
-                                       onBlur={e => tableDataChange(e, data, o)}/>
+                                <div suppressContentEditableWarning className='edit-div' contentEditable
+                                     onKeyUp={e => tableDataKeyChange(e, data, o)}
+                                     onBlur={e => tableDataChange(e, data, o)}
+                                >
+                                </div>
                               </td>
                             })
                           }
