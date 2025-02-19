@@ -204,7 +204,7 @@ function NoteContent({note}) {
   function tableDataChange(e, item, index) {
     e.stopPropagation()
     const datas = [...item.datas]
-    datas[index] = e.target.innerText
+    datas[index] = e.target.value
     ajax.post('/note-content/table-data-update', {id: item.id, datas: JSON.stringify(datas)}).then(res => {
       if (res.code === 0) {
         item.datas = [...datas]
@@ -357,13 +357,13 @@ function NoteContent({note}) {
                         <tr key={`item-table-data-${data.id}`}>
                           {
                             a.orders.filter(o => o > -1).map(o => {
-                              return <td key={`table-data-${data.id}-${o}`}>
-                                <div suppressContentEditableWarning className='edit-div' contentEditable
-                                     onKeyUp={e => tableDataKeyChange(e, data, o)}
-                                     onBlur={e => tableDataChange(e, data, o)}
-                                >
-                                </div>
-                              </td>
+                              if(o in data.datas) {
+                                return <td key={`table-data-${data.id}-${o}`}>
+                                <textarea defaultValue={data.datas[o]}
+                                          onBlur={e => tableDataChange(e, a, o)}
+                                ></textarea>
+                                </td>
+                              }
                             })
                           }
                         </tr>
