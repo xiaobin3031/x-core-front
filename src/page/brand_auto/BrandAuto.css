@@ -1,0 +1,219 @@
+.scene-info-nav {
+
+    & ul {
+        list-style: none;
+        padding: 0 0 0 30px;
+
+        & li {
+            display: inline-block;
+            padding: 3px 20px;
+            cursor: pointer;
+
+            &.active {
+                border-top: 1px solid black;
+
+                border-top-left-radius: 10px;
+                border-top-right-radius: 10px;
+                position: relative;
+
+                &:before {
+                    content: '';
+                    width: 10px;
+                    height: 20px;
+                    border-right: 1px solid black;
+                    border-bottom: 1px solid black;
+
+                    position: absolute;
+                    border-bottom-right-radius: 10px;
+                    left: -10px;
+                    bottom: 0;
+                }
+                &:after {
+                    content: '';
+                    width: 10px;
+                    height: 20px;
+                    border-left: 1px solid black;
+                    border-bottom: 1px solid black;
+
+                    position: absolute;
+                    border-bottom-left-radius: 10px;
+                    right: -10px;
+                    bottom: 0;
+                }
+                & + li {
+                    border-bottom-left-radius: 10px;
+                }
+            }
+
+            &:has(+ li.active) {
+                border-bottom-right-radius: 10px;
+            }
+
+            &:not(.active) {
+                border-bottom: 1px solid black;
+            }
+
+            & > div {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+
+                & > svg {
+                    margin-right: 10px;
+                }
+            }
+        }
+    }
+}
+
+.content-body {
+
+    & .flow-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+        margin-left: 100px;
+
+        & .process-bar {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            text-align: center;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-right: 30px;
+
+        }
+
+        &.active .process-bar{
+            border: 1px solid black;
+        }
+
+        & .flow-card {
+            width: 100%;
+            border-left: 1px solid black;
+            padding-left: 20px;
+            border-top-left-radius: 10px;
+            border-bottom-left-radius: 10px;
+            position: relative;
+
+            &:before {
+                width: 0;
+                height: 0;
+                content: '';
+                border: 10px transparent solid;
+                border-left-color: #000;
+                position: absolute;
+                transform: rotate(180deg);
+                left: -20px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                top: calc(50% - 10px);
+            }
+
+            & .flow-card-head {
+                font-weight: bold;
+                font-size: 1.1em;
+
+                & > span:first-child {
+                    margin-left: 30px;
+                }
+
+                & .order-sn-span {
+                    color: #47ff47;
+                }
+
+                & .errmsg-span {
+                    color: #ff4747;
+                }
+            }
+        }
+
+        /* 创建订单 */
+        & .order-create {
+            & .order-create-goods {
+                display: flex;
+                align-items: center;
+                margin-bottom: 10px;
+
+                & .label {
+                    display: inline-block;
+                    width: 80px;
+                    text-align: right;
+                    padding-right: 10px;
+                }
+
+                & .icon-btns {
+                    display: flex;
+                    align-items: center;
+                    margin-left: 20px;
+
+                    & svg {
+                        margin-right: 10px;
+
+                        &:not(.disabled){
+                            cursor: pointer;
+                        }
+
+                        &.disabled {
+                            cursor: not-allowed;
+                        }
+                    }
+                }
+
+                & input {
+                    width: 200px;
+                }
+            }
+
+            & .order-create-price {
+                display: flex;
+                flex-direction: column;
+
+                & > div {
+                    display: flex;
+                    margin-bottom: 10px;
+                }
+
+                & .label {
+                    display: inline-block;
+                    width: 80px;
+                    text-align: right;
+                    padding-right: 10px;
+                }
+
+                & input {
+                    width: 200px;
+                }
+            }
+
+            & .flow-card-foot-btn {
+
+                & button {
+                    margin-right: 30px;
+                    padding: 5px 13px;
+                    border-style: none;
+                    border-radius: 5px;
+                    box-sizing: border-box;
+
+                    &:not(:disabled) {
+                        cursor: pointer;
+                    }
+                    &:disabled {
+                        cursor: not-allowed;
+                    }
+
+                    &.create {
+                        background-color: #2dff2d;
+                    }
+
+                    &.reset {
+                        background-color: #ffaf20;
+                    }
+                }
+            }
+        }
+    }
+}
