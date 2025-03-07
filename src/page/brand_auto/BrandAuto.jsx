@@ -104,7 +104,10 @@ export default function BrandAuto({}) {
     if (!!curFlow?.flowInfo?.automatic) {
       let res;
       while (true) {
-        setCurFlowStep(constant.flow_active)
+        setCurFlow(a => {
+          a.step = constant.flow_active
+          a.loading = true
+        })
         res = await execAutomatic()
         if (!!res && !!res.data?.end) {
           curFlow.errMsg = ''
@@ -159,12 +162,19 @@ export default function BrandAuto({}) {
           resolve(res)
         }, 5_000)
       })
+        .finally(() => setCurFlow(a => a.loading = false))
     })
   }
 
   function setCurFlowStep(step) {
     flowList.filter(a => a.flowInfo.flowId === curInfo.current.flowId)
       .forEach(a => a.step = step)
+    setFlowList([...flowList])
+  }
+
+  function setCurFlow(callback){
+    flowList.filter(a => a.flowInfo.flowId === curInfo.current.flowId)
+      .forEach(a => callback(a))
     setFlowList([...flowList])
   }
 
@@ -237,6 +247,9 @@ export default function BrandAuto({}) {
       })
 
       loading.current = true
+      flowList.filter(a => a.flowInfo.flowId === curInfo.current.flowId)
+        .forEach(a => a.loading = true)
+      setFlowList([...flowList])
       ajax.post('/brand/flows/exec', {
         testId: testId,
         orderCreateInfo: data,
@@ -261,7 +274,12 @@ export default function BrandAuto({}) {
             nextSceneAndFlow(res.data)
           }
         }
-      }).finally(() => loading.current = false)
+      }).finally(() => {
+        loading.current = false
+        flowList.filter(a => a.flowInfo.flowId === curInfo.current.flowId)
+          .forEach(a => a.loading = false)
+        setFlowList([...flowList])
+      })
     }
 
     function resetOrder() {
@@ -549,7 +567,7 @@ export default function BrandAuto({}) {
 
   function FlowDiv({flowInfo, children, cls = ''}) {
     return (
-      <div key={`flow-key-{flowInfo.flowId}`} className={`flow-card ${cls}`}>
+      <div key={`key-flow-card-${flowInfo.flowId}`} className={`flow-card ${cls}`}>
         {children}
       </div>
     )
@@ -713,7 +731,7 @@ export default function BrandAuto({}) {
                         d="M511.144516 868.596627c-176.289052 0-322.915527-126.987183-353.409029-294.455335l-6.408967 1.281179c-3.793396-16.240893-16.951067-29.987988-35.346019-34.579563-26.28055-6.576789-53.234435 7.950066-60.276828 32.417317L4.750187 750.438531c-7.014764 24.439622 8.56405 49.608861 34.815947 56.158021 26.249851 6.54609 53.231365-7.982812 60.249199-32.420387l15.270798-53.103452C190.734042 862.317621 339.715145 958.400956 511.144516 958.400956c197.718107 0 365.571023-127.800711 425.492764-305.296241l-87.510076-21.877263C799.22977 769.635755 666.74641 868.596627 511.144516 868.596627zM985.122551 242.026242c-25.606191-6.956436-52.266387 7.219425-59.545164 31.659047L914.292366 311.528176C841.156672 162.761967 688.116113 60.375066 511.144516 60.375066c-199.51094 0-368.632755 130.128733-427.121867 310.140573l81.459267 40.73168c42.706661-150.673651 181.293019-261.069971 345.662601-261.069971 184.557366 0 336.598154 139.216715 356.880083 318.353628l3.095501-1.238201c1.677199 18.482957 15.036461 34.93158 34.840506 40.312124 25.637913 6.958482 52.297087-7.220449 59.575864-31.657001l52.765761-177.063695C1025.608637 274.414907 1010.760464 248.984724 985.122551 242.026242z"
                       >
                         {
-                          flow.step === constant.flow_active && flow.flowInfo.automatic &&
+                          flow.step === constant.flow_active && flow.loading &&
                           <animateTransform attributeName="transform" type="rotate"
                                             attributeType="XML"
                                             from="0 512 512"
