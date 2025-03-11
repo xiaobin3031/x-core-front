@@ -2,6 +2,7 @@ import './BrandAuto.css'
 import {useRef, useState} from "react";
 import ajax from "../util/ajax.js";
 import constant from "./constant.js";
+import Input from "../components/Input.jsx";
 
 /**
  * 品牌自动化接口测试
@@ -184,7 +185,6 @@ export default function BrandAuto({}) {
 
     const [curCreateGoods, setCurCreateGoods] = useState([...(flowInfo.goodsList || createGoodsInfo.current)])
     const [orderInfo, setOrderInfo] = useState({})
-    const [errmsg, setErrmsg] = useState('')
 
     const loading = useRef(false)
 
@@ -225,7 +225,8 @@ export default function BrandAuto({}) {
       if (isDisable()) return;
 
       if (curCreateGoods.some(a => !a.spuCode || !a.skuCode || a.number <= 0)) {
-        setErrmsg('请填写spuCode, skuCode, number')
+        flow.errMsg = '请填写spuCode, skuCode, number'
+        setFlowList([...flowList])
         return;
       }
 
@@ -249,6 +250,7 @@ export default function BrandAuto({}) {
       loading.current = true
       flowList.filter(a => a.flowInfo.flowId === curInfo.current.flowId)
         .forEach(a => a.loading = true)
+      flow.errMsg = ''
       setFlowList([...flowList])
       ajax.post('/brand/flows/exec', {
         testId: testId,
@@ -258,7 +260,7 @@ export default function BrandAuto({}) {
       }).then(res => {
         if (res.code === 0 && !!res.data) {
           if (!!res.data.errMsg) {
-            setErrmsg(res.data.errMsg)
+            flow.errMsg = res.data.errMsg
           } else {
             lockOtherScene()
             setOrderGoodsInfo([...data.goodsList])
@@ -266,11 +268,9 @@ export default function BrandAuto({}) {
             flow.goodsList = [...data.goodsList]
             if (!!res.data.end) {
               setCurFlowStep(constant.flow_end)
-            } else {
-              setFlowList([...flowList])
             }
             automaticData.orderSn = res.data.orderSn
-            setErrmsg('')
+            flow.errMsg = ''
             nextSceneAndFlow(res.data)
           }
         }
@@ -291,7 +291,8 @@ export default function BrandAuto({}) {
         skuCode: '',
         number: 1
       }])
-      setErrmsg('')
+      flow.errMsg = ''
+      setFlowList([...flowList])
     }
 
     return (
@@ -304,7 +305,7 @@ export default function BrandAuto({}) {
               <span className='order-sn-span'>{flow.orderSn}</span>
             </span>
           }
-          <span className='errmsg-span'>{errmsg}</span>
+          <span className='errmsg-span'>{flow.errMsg}</span>
         </div>
         <form>
 
@@ -315,9 +316,11 @@ export default function BrandAuto({}) {
               return (
                 <div className="order-create-goods" key={`flow-create-goods-${flowInfo.flowId}-${index}`}>
                   <div>
-                    <span className='label'>spuCode:</span>
-                    <label><input name="spuCode" value={goods.spuCode} disabled={flow.step === constant.flow_end}
-                                  onChange={e => goodsInfoChange(e, goods, 'spuCode')}/></label>
+                    {/*<span className='label'>spuCode:</span>*/}
+                    {/*<label><input name="spuCode" value={goods.spuCode} disabled={flow.step === constant.flow_end}*/}
+                    {/*              onChange={e => goodsInfoChange(e, goods, 'spuCode')}/></label>*/}
+                    <Input label='spuCode' name="spuCode" value={goods.spuCode} disabled={flow.step === constant.flow_end}
+                                  onChange={e => goodsInfoChange(e, goods, 'spuCode')}/>
                   </div>
                   <div>
                     <span className='label'>skuCode:</span>

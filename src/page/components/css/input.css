@@ -1,0 +1,63 @@
+.x-input-label {
+    --label-height: 30px;
+    --label-span-height: 14px;
+
+    width: 100%;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    position: relative;
+
+    & > input {
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+        padding: 0;
+
+        &:focus {
+            outline: none;
+        }
+    }
+
+    & > span {
+        position: absolute;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 14px;
+        left: 4px;
+        background-color: white;
+        z-index: 10;
+    }
+
+    &:not(.focus) > span {
+        color: #ccc;
+    }
+
+    @keyframes input-label-span-animation {
+        0% {
+            font-size: 1em;
+            top: auto;
+            left: 4px;
+        }
+        100% {
+            font-size: 0.8em;
+            /*top: calc(-1 * var(--label-span-height) / 2);*/
+            top: -7px;
+            left: 13px;
+        }
+    }
+
+    &.focus > span {
+        /*font-size: 0.8em;*/
+        /*top: -7px;*/
+        /*left: 13px;*/
+        /*transition: font-size, top, left 1.2s;*/
+        animation: input-label-span-animation 2s linear;
+
+        &:after {
+            content: ":"
+        }
+    }
+}

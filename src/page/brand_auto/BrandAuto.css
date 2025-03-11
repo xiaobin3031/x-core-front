@@ -121,7 +121,7 @@
                 top: calc(50% - 10px);
             }
 
-            & .flow-card-head {
+            & > .flow-card-head {
                 font-weight: bold;
                 font-size: 1.1em;
 
@@ -136,6 +136,11 @@
                 & .errmsg-span {
                     color: #ff4747;
                 }
+            }
+
+            & > .flow-card-body {
+                margin-top: 25px;
+                margin-bottom: 25px;
             }
         }
 
@@ -169,10 +174,6 @@
                             cursor: not-allowed;
                         }
                     }
-                }
-
-                & input {
-                    width: 200px;
                 }
             }
 
