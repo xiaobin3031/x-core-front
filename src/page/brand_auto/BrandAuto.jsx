@@ -114,7 +114,7 @@ export default function BrandAuto({}) {
           curFlow.errMsg = ''
           break;
         }
-        if(!!res?.data?.errMsg){
+        if (!!res?.data?.errMsg) {
           curFlow.errMsg = res.data.errMsg
           setFlowList([...flowList])
         }
@@ -173,7 +173,7 @@ export default function BrandAuto({}) {
     setFlowList([...flowList])
   }
 
-  function setCurFlow(callback){
+  function setCurFlow(callback) {
     flowList.filter(a => a.flowInfo.flowId === curInfo.current.flowId)
       .forEach(a => callback(a))
     setFlowList([...flowList])
@@ -292,6 +292,7 @@ export default function BrandAuto({}) {
         number: 1
       }])
       flow.errMsg = ''
+      flow.goodsList = void 0
       setFlowList([...flowList])
     }
 
@@ -314,116 +315,80 @@ export default function BrandAuto({}) {
           {
             curCreateGoods.map((goods, index) => {
               return (
-                <div className="order-create-goods" key={`flow-create-goods-${flowInfo.flowId}-${index}`}>
-                  <div>
-                    {/*<span className='label'>spuCode:</span>*/}
-                    {/*<label><input name="spuCode" value={goods.spuCode} disabled={flow.step === constant.flow_end}*/}
-                    {/*              onChange={e => goodsInfoChange(e, goods, 'spuCode')}/></label>*/}
-                    <Input label='spuCode' name="spuCode" value={goods.spuCode} disabled={flow.step === constant.flow_end}
-                                  onChange={e => goodsInfoChange(e, goods, 'spuCode')}/>
+                <>
+                  <div className="order-create-goods" key={`flow-create-goods-${flowInfo.flowId}-${index}`}>
+                    <Input label='SpuCode' name="spuCode" value={goods.spuCode}
+                           disabled={flow.step === constant.flow_end}
+                           onChange={e => goodsInfoChange(e, goods, 'spuCode')}/>
+                    <Input label='SkuCode' name="skuCode" value={goods.skuCode}
+                           disabled={flow.step === constant.flow_end}
+                           onChange={e => goodsInfoChange(e, goods, 'skuCode')}/>
+                    <Input label='Number' name="number" type="number" value={goods.number}
+                           disabled={flow.step === constant.flow_end}
+                           onChange={e => goodsInfoChange(e, goods, 'number')}/>
+                    <div className='icon-btns'>
+                      <svg className={`icon-btn ${flow.step === constant.flow_end ? 'disabled' : ''}`}
+                           viewBox="0 0 1024 1024"
+                           xmlns="http://www.w3.org/2000/svg" width="30"
+                           height="30" onClick={() => addNewGoods(index)}>
+                        <path
+                          d="M522.91911789 95.88235284a397.05882358 397.05882358 0 1 1 0 794.11764716A397.05882358 397.05882358 0 0 1 522.91911789 95.88235284z m0 64.52205854a332.53676504 332.53676504 0 1 0 0 665.07353009A332.53676504 332.53676504 0 0 0 522.91911789 160.40441138z"
+                          fill="green"></path>
+                        <path
+                          d="M329.70036789 460.68014715m32.26102926 0l321.96507358 0q32.26102927 0 32.26102927 32.26102927l0 0q0 32.26102927-32.26102927 32.26102926l-321.96507357 0q-32.26102927 0-32.26102927-32.26102926l0 0q0-32.26102927 32.26102926-32.26102927Z"
+                          fill="green"></path>
+                        <path
+                          d="M555.18014715 299.72242642m0 32.26102926l0 321.96507359q0 32.26102927-32.26102926 32.26102926l0 0q-32.26102927 0-32.26102927-32.26102926l0-321.96507359q0-32.26102927 32.26102927-32.26102926l0 0q32.26102927 0 32.26102927 32.26102926Z"
+                          fill="green"></path>
+                      </svg>
+                      <svg className={`icon-btn ${flow.step === constant.flow_end ? 'disabled' : ''}`}
+                           viewBox="0 0 1024 1024"
+                           xmlns="http://www.w3.org/2000/svg" width="30"
+                           height="30" onClick={() => removeGoods(index)}>
+                        <path
+                          d="M525.54963211 117.21568617a397.05882358 397.05882358 0 1 1 0 794.11764716A397.05882358 397.05882358 0 0 1 525.54963211 117.21568617z m0 64.52205854a332.53676504 332.53676504 0 1 0 0 665.07353009A332.53676504 332.53676504 0 0 0 525.54963211 181.73774471z"
+                          fill="red"></path>
+                        <path
+                          d="M332.33088211 482.01348048m32.26102927 0l321.96507358 0q32.26102927 0 32.26103008 32.26102927l0 0q0 32.26102927-32.26103008 32.26102926l-321.96507358 0q-32.26102927 0-32.26102927-32.26102926l0 0q0-32.26102927 32.26102927-32.26102927Z"
+                          fill="red"></path>
+                      </svg>
+                    </div>
                   </div>
-                  <div>
-                    <span className='label'>skuCode:</span>
-                    <label><input name="skuCode" value={goods.skuCode} disabled={flow.step === constant.flow_end}
-                                  onChange={e => goodsInfoChange(e, goods, 'skuCode')}/></label>
-                  </div>
-                  <div>
-                    <span className='label'>number:</span>
-                    <label><input name="number" type="number" value={goods.number}
-                                  disabled={flow.step === constant.flow_end}
-                                  onChange={e => goodsInfoChange(e, goods, 'number')}/></label>
-                  </div>
-                  <div className='icon-btns'>
-                    <svg className={`icon-btn ${flow.step === constant.flow_end ? 'disabled' : ''}`}
-                         viewBox="0 0 1024 1024"
-                         xmlns="http://www.w3.org/2000/svg" width="30"
-                         height="30" onClick={() => addNewGoods(index)}>
-                      <path
-                        d="M522.91911789 95.88235284a397.05882358 397.05882358 0 1 1 0 794.11764716A397.05882358 397.05882358 0 0 1 522.91911789 95.88235284z m0 64.52205854a332.53676504 332.53676504 0 1 0 0 665.07353009A332.53676504 332.53676504 0 0 0 522.91911789 160.40441138z"
-                        fill="green"></path>
-                      <path
-                        d="M329.70036789 460.68014715m32.26102926 0l321.96507358 0q32.26102927 0 32.26102927 32.26102927l0 0q0 32.26102927-32.26102927 32.26102926l-321.96507357 0q-32.26102927 0-32.26102927-32.26102926l0 0q0-32.26102927 32.26102926-32.26102927Z"
-                        fill="green"></path>
-                      <path
-                        d="M555.18014715 299.72242642m0 32.26102926l0 321.96507359q0 32.26102927-32.26102926 32.26102926l0 0q-32.26102927 0-32.26102927-32.26102926l0-321.96507359q0-32.26102927 32.26102927-32.26102926l0 0q32.26102927 0 32.26102927 32.26102926Z"
-                        fill="green"></path>
-                    </svg>
-                    <svg className={`icon-btn ${flow.step === constant.flow_end ? 'disabled' : ''}`}
-                         viewBox="0 0 1024 1024"
-                         xmlns="http://www.w3.org/2000/svg" width="30"
-                         height="30" onClick={() => removeGoods(index)}>
-                      <path
-                        d="M525.54963211 117.21568617a397.05882358 397.05882358 0 1 1 0 794.11764716A397.05882358 397.05882358 0 0 1 525.54963211 117.21568617z m0 64.52205854a332.53676504 332.53676504 0 1 0 0 665.07353009A332.53676504 332.53676504 0 0 0 525.54963211 181.73774471z"
-                        fill="red"></path>
-                      <path
-                        d="M332.33088211 482.01348048m32.26102927 0l321.96507358 0q32.26102927 0 32.26103008 32.26102927l0 0q0 32.26102927-32.26103008 32.26102926l-321.96507358 0q-32.26102927 0-32.26102927-32.26102926l0 0q0-32.26102927 32.26102927-32.26102927Z"
-                        fill="red"></path>
-                    </svg>
-                  </div>
-                </div>
+                </>
               )
             })
           }
 
           <div className="order-create-price">
             <div>
-              <div>
-                <span className="label">促销:</span>
-                <label className="price-label"><input className="price" name="promotionPrice"
-                                                      value={orderInfo.promotionPrice}
-                                                      disabled={flow.step === constant.flow_end}
-                                                      onChange={e => orderInfoChange(e, 'promotionPrice')}/>
-                </label>
-              </div>
-              <div>
-                <span className="label">vip优惠:</span>
-                <label className="price-label"><input className="price" name="vipPrice" value={orderInfo.vipPrice}
-                                                      disabled={flow.step === constant.flow_end}
-                                                      onChange={e => orderInfoChange(e, 'vipPrice')}/></label>
-              </div>
-              <div>
-                <span className="label">积分抵现:</span>
-                <label className="price-label"><input className="price" name="integralPrice"
-                                                      value={orderInfo.integralPrice}
-                                                      disabled={flow.step === constant.flow_end}
-                                                      onChange={e => orderInfoChange(e, 'integralPrice')}/></label>
-              </div>
+              <Input label='促销优惠金额' className="price" name="promotionPrice"
+                     value={orderInfo.promotionPrice}
+                     disabled={flow.step === constant.flow_end}
+                     onChange={e => orderInfoChange(e, 'promotionPrice')}/>
+              <Input label='vip优惠金额' className="price" name="vipPrice" value={orderInfo.vipPrice}
+                     disabled={flow.step === constant.flow_end}
+                     onChange={e => orderInfoChange(e, 'vipPrice')}/>
+              <Input label='积分抵现金额' className="price" name="integralPrice"
+                     value={orderInfo.integralPrice}
+                     disabled={flow.step === constant.flow_end}
+                     onChange={e => orderInfoChange(e, 'integralPrice')}/>
             </div>
             <div>
-              <div>
-                <span className="label">店铺券:</span>
-                <label className="price-label">
-                  <input className="price" name="couponPrice" value={orderInfo.couponPrice}
-                         disabled={flow.step === constant.flow_end}
-                         onChange={e => orderInfoChange(e, 'couponPrice')}/>
-                </label>
-              </div>
-              <div>
-                <span className="label">广场券:</span>
-                <label className="price-label">
-                  <input className="price" name="couponMallPrice" value={orderInfo.couponMallPrice}
-                         disabled={flow.step === constant.flow_end}
-                         onChange={e => orderInfoChange(e, 'couponMallPrice')}/>
-                </label>
-              </div>
-              <div>
-                <span className="label">代金券:</span>
-                <label className="price-label">
-                  <input className="price" name="cashPrice" value={orderInfo.cashPrice}
-                         disabled={flow.step === constant.flow_end}
-                         onChange={e => orderInfoChange(e, 'cashPrice')}/>
-                </label>
-              </div>
+              <Input label='店铺券优惠金额' className="price" name="couponPrice" value={orderInfo.couponPrice}
+                     disabled={flow.step === constant.flow_end}
+                     onChange={e => orderInfoChange(e, 'couponPrice')}/>
+              <Input label='广场券优惠金额' className="price" name="couponMallPrice" value={orderInfo.couponMallPrice}
+                     disabled={flow.step === constant.flow_end}
+                     onChange={e => orderInfoChange(e, 'couponMallPrice')}/>
+              <Input label='代金券优惠金额' className="price" name="cashPrice" value={orderInfo.cashPrice}
+                     disabled={flow.step === constant.flow_end}
+                     onChange={e => orderInfoChange(e, 'cashPrice')}/>
             </div>
+
             <div>
-              <div>
-                <span className="label">运费:</span>
-                <label className="price-label">
-                  <input className="price" name="freightPrice" value={orderInfo.freightPrice}
-                         disabled={flow.step === constant.flow_end}
-                         onChange={e => orderInfoChange(e, 'freightPrice')}/>
-                </label>
-              </div>
+              <Input label='运费' className="price" name="freightPrice" value={orderInfo.freightPrice}
+                     disabled={flow.step === constant.flow_end}
+                     onChange={e => orderInfoChange(e, 'freightPrice')}/>
             </div>
           </div>
         </div>

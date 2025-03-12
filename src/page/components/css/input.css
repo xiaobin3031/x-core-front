@@ -1,9 +1,10 @@
 .x-input-label {
-    --label-height: 30px;
+    --label-height: 35px;
     --label-span-height: 14px;
+    --label-span-init-top: calc((var(--label-height) - var(--label-span-height)) / 2);
 
     width: 100%;
-    height: 30px;
+    height: var(--label-height);
     display: flex;
     align-items: center;
     justify-content: start;
@@ -13,48 +14,52 @@
         width: 100%;
         height: 100%;
         box-sizing: border-box;
-        padding: 0;
+        border: 1px solid rgba(37, 37, 37, 0.5);
+        padding-top: 10px;
+        padding-left: 10px;
+        border-radius: 5px;
+
+        /*改变自动选中后的背景颜色变化*/
+        &:-webkit-autofill {
+            -webkit-box-shadow: 0 0 0 1000px rgb(255, 255, 255) inset !important; /* 改变背景色 */
+        }
 
         &:focus {
             outline: none;
+            border-color: rgba(99, 99, 255, 0.42);
+            box-shadow: 0 0 0 2px rgba(99, 99, 255, 0.42);
+        }
+
+        &::-webkit-outer-spin-button,
+        &::-webkit-inner-spin-button {
+            -webkit-appearance: none;
         }
     }
 
-    & > span {
+    & > .label-text {
         position: absolute;
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 14px;
-        left: 4px;
-        background-color: white;
+        height: var(--label-span-height);
         z-index: 10;
+        background-color: white;
+        top: var(--label-span-init-top);
     }
 
-    &:not(.focus) > span {
+    &:not(.focus) > .label-text {
         color: #ccc;
+        font-size: 1em;
+        top: var(--label-span-init-top);
+        left: 10px;
+        transition: font-size, top, left .2s, .2s, .2s;
     }
 
-    @keyframes input-label-span-animation {
-        0% {
-            font-size: 1em;
-            top: auto;
-            left: 4px;
-        }
-        100% {
-            font-size: 0.8em;
-            /*top: calc(-1 * var(--label-span-height) / 2);*/
-            top: -7px;
-            left: 13px;
-        }
-    }
-
-    &.focus > span {
-        /*font-size: 0.8em;*/
-        /*top: -7px;*/
-        /*left: 13px;*/
-        /*transition: font-size, top, left 1.2s;*/
-        animation: input-label-span-animation 2s linear;
+    &.focus > .label-text {
+        font-size: 0.8em;
+        top: calc(-1 * var(--label-span-height) / 2);
+        left: 28px;
+        transition: font-size, top, left .2s, .2s, .2s;
 
         &:after {
             content: ":"

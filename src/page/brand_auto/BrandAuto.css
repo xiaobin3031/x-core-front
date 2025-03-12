@@ -146,22 +146,17 @@
 
         /* 创建订单 */
         & .order-create {
-            & .order-create-goods {
-                display: flex;
-                align-items: center;
-                margin-bottom: 10px;
+            width: 60%;
 
-                & .label {
-                    display: inline-block;
-                    width: 80px;
-                    text-align: right;
-                    padding-right: 10px;
-                }
+            & .order-create-goods {
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr 80px;
+                column-gap: 50px;
+                margin-bottom: 10px;
 
                 & .icon-btns {
                     display: flex;
                     align-items: center;
-                    margin-left: 20px;
 
                     & svg {
                         margin-right: 10px;
@@ -180,21 +175,13 @@
             & .order-create-price {
                 display: flex;
                 flex-direction: column;
+                margin-top: 50px;
 
                 & > div {
-                    display: flex;
-                    margin-bottom: 10px;
-                }
-
-                & .label {
-                    display: inline-block;
-                    width: 80px;
-                    text-align: right;
-                    padding-right: 10px;
-                }
-
-                & input {
-                    width: 200px;
+                    display: grid;
+                    grid-template-columns: 1fr 1fr 1fr 80px;
+                    column-gap: 50px;
+                    margin-bottom: 20px;
                 }
             }
 

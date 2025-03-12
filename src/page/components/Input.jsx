@@ -23,18 +23,27 @@ export default function Input({...props}) {
     e.stopPropagation()
     e.preventDefault()
 
-    cls.remove('focus')
-    setCls([...cls])
+    if (!e.target.value) {
+      cls.remove('focus')
+      setCls([...cls])
+    }
 
     if (props.onBlur) {
       props.onBlur(e)
     }
   }
 
+  if (!!props.value && cls.indexOf('focus') === -1) {
+    cls.push('focus')
+  }
+
   return (
     <div className={`x-input-label ${cls.join(' ')}`}>
-      <span onClick={e => inputRef.current.focus()}>{label}</span>
+      <span className='label-text' onClick={() => inputRef.current.focus()}>
+        {label}
+      </span>
       <input
+        type={props.type || 'text'}
         style={props.style}
         ref={inputRef}
         key={props.key}
