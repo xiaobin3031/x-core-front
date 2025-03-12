@@ -140,7 +140,6 @@
 
             & > .flow-card-body {
                 margin-top: 25px;
-                margin-bottom: 25px;
             }
         }
 
@@ -186,29 +185,9 @@
             }
 
             & .flow-card-foot-btn {
-
-                & button {
-                    margin-right: 30px;
-                    padding: 5px 13px;
-                    border-style: none;
-                    border-radius: 5px;
-                    box-sizing: border-box;
-
-                    &:not(:disabled) {
-                        cursor: pointer;
-                    }
-                    &:disabled {
-                        cursor: not-allowed;
-                    }
-
-                    &.create {
-                        background-color: #2dff2d;
-                    }
-
-                    &.reset {
-                        background-color: #ffaf20;
-                    }
-                }
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr 80px;
+                column-gap: 50px;
             }
         }
     }

@@ -1,0 +1,35 @@
+.x-button {
+    height: 40px;
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-right: 30px;
+    padding: 5px 13px;
+    border-style: none;
+    border-radius: 5px;
+    box-sizing: border-box;
+    font-size: 16px;
+
+    &:not(:disabled) {
+        cursor: pointer;
+    }
+    &:disabled {
+        cursor: not-allowed;
+    }
+
+    &.success {
+        background-color: #2dff2d;
+    }
+    &.warn {
+        background-color: #ffaf20;
+    }
+    &.danger {
+        background-color: #ff4343;
+    }
+    &.primary {
+        background-color: #4dbbff;
+    }
+}

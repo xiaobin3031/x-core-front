@@ -3,6 +3,7 @@ import {useRef, useState} from "react";
 import ajax from "../util/ajax.js";
 import constant from "./constant.js";
 import Input from "../components/Input.jsx";
+import Button from "../components/Button.jsx";
 
 /**
  * 品牌自动化接口测试
@@ -19,11 +20,6 @@ export default function BrandAuto({}) {
   const [orderGoodsInfo, setOrderGoodsInfo] = useState([])
   const [waitTime, setWaitTime] = useState(0);
 
-  const createGoodsInfo = useRef([{
-    spuCode: '',
-    skuCode: '',
-    number: 1
-  }])
   const automaticData = useRef({})
   const curInfo = useRef({
     sceneId: 0, flowId: 0
@@ -183,53 +179,61 @@ export default function BrandAuto({}) {
 
     const flowInfo = flow.flowInfo
 
-    const [curCreateGoods, setCurCreateGoods] = useState([...(flowInfo.goodsList || createGoodsInfo.current)])
-    const [orderInfo, setOrderInfo] = useState({})
+    if (!flow.orderInfo) {
+      flow.orderInfo = {}
+    }
 
-    const loading = useRef(false)
+    if (!flow.goodsList) {
+      flow.goodsList = [{
+        spuCode: '',
+        skuCode: '',
+        number: 1
+      }]
+    }
 
     function isDisable() {
-      return flow.step === constant.flow_end || loading.current;
+      return flow.step === constant.flow_end || flow.loading;
     }
 
     function goodsInfoChange(e, goods, key) {
       goods[key] = e.target.value
-      setCurCreateGoods([...curCreateGoods])
+      setFlowList([...flowList])
     }
 
     function addNewGoods(index) {
-      if (isDisable() || curCreateGoods.some(a => !a.spuCode || !a.skuCode || a.number <= 0)) return;
+      if (isDisable() || flow.goodsList.some(a => !a.spuCode || !a.skuCode || a.number <= 0)) return;
 
       const item = {
         spuCode: '', skuCode: '', number: 1
       }
-      curCreateGoods.splice(index + 1, 0, item)
-      setCurCreateGoods([...curCreateGoods])
+      flow.goodsList.splice(index + 1, 0, item)
+      setFlowList([...flowList])
     }
 
     function removeGoods(index) {
-      if (isDisable() || curCreateGoods.length <= 1) return
+      if (isDisable() || flow.goodsList.length <= 1) return
 
-      curCreateGoods.splice(index, 1)
-      setCurCreateGoods([...curCreateGoods])
+      flow.goodsList.splice(index, 1)
+      setFlowList([...flowList])
     }
 
     function orderInfoChange(e, key) {
       if (isDisable()) return;
 
-      orderInfo[key] = e.target.value
-      setOrderInfo({...orderInfo})
+      flow.orderInfo[key] = e.target.value
+      setFlowList([...flowList])
     }
 
     function createOrder() {
       if (isDisable()) return;
 
-      if (curCreateGoods.some(a => !a.spuCode || !a.skuCode || a.number <= 0)) {
+      if (flow.goodsList.some(a => !a.spuCode || !a.skuCode || a.number <= 0)) {
         flow.errMsg = '请填写spuCode, skuCode, number'
         setFlowList([...flowList])
         return;
       }
 
+      const orderInfo = flow.orderInfo
       const data = {}
       data.promotionPrice = +(orderInfo.promotionPrice || 0);
       data.vipPrice = +(orderInfo.vipPrice || 0);
@@ -239,7 +243,7 @@ export default function BrandAuto({}) {
       data.couponMallPrice = +(orderInfo.couponMallPrice || 0);
       data.cashPrice = +(orderInfo.cashPrice || 0);
       data.freightPrice = +(orderInfo.freightPrice || 0);
-      data.goodsList = curCreateGoods.map(a => {
+      data.goodsList = flow.goodsList.map(a => {
         return {
           spuCode: a.spuCode,
           skuCode: a.skuCode,
@@ -247,7 +251,6 @@ export default function BrandAuto({}) {
         }
       })
 
-      loading.current = true
       flowList.filter(a => a.flowInfo.flowId === curInfo.current.flowId)
         .forEach(a => a.loading = true)
       flow.errMsg = ''
@@ -275,7 +278,6 @@ export default function BrandAuto({}) {
           }
         }
       }).finally(() => {
-        loading.current = false
         flowList.filter(a => a.flowInfo.flowId === curInfo.current.flowId)
           .forEach(a => a.loading = false)
         setFlowList([...flowList])
@@ -285,14 +287,13 @@ export default function BrandAuto({}) {
     function resetOrder() {
       if (isDisable()) return;
 
-      setOrderInfo({})
-      setCurCreateGoods([{
+      flow.orderInfo = {}
+      flow.errMsg = ''
+      flow.goodsList = [{
         spuCode: '',
         skuCode: '',
         number: 1
-      }])
-      flow.errMsg = ''
-      flow.goodsList = void 0
+      }]
       setFlowList([...flowList])
     }
 
@@ -310,7 +311,7 @@ export default function BrandAuto({}) {
         </div>
         <div className="flow-card-body">
           {
-            curCreateGoods.map((goods, index) => {
+            flow.goodsList.map((goods, index) => {
               return (
                 <>
                   <div className="order-create-goods" key={`flow-create-goods-${flowInfo.flowId}-${index}`}>
@@ -359,31 +360,32 @@ export default function BrandAuto({}) {
           <div className="order-create-price">
             <div>
               <Input label='促销优惠金额' className="price" name="promotionPrice"
-                     value={orderInfo.promotionPrice}
+                     value={flow.orderInfo.promotionPrice}
                      disabled={flow.step === constant.flow_end}
                      onChange={e => orderInfoChange(e, 'promotionPrice')}/>
-              <Input label='vip优惠金额' className="price" name="vipPrice" value={orderInfo.vipPrice}
+              <Input label='vip优惠金额' className="price" name="vipPrice" value={flow.orderInfo.vipPrice}
                      disabled={flow.step === constant.flow_end}
                      onChange={e => orderInfoChange(e, 'vipPrice')}/>
               <Input label='积分抵现金额' className="price" name="integralPrice"
-                     value={orderInfo.integralPrice}
+                     value={flow.orderInfo.integralPrice}
                      disabled={flow.step === constant.flow_end}
                      onChange={e => orderInfoChange(e, 'integralPrice')}/>
             </div>
             <div>
-              <Input label='店铺券优惠金额' className="price" name="couponPrice" value={orderInfo.couponPrice}
+              <Input label='店铺券优惠金额' className="price" name="couponPrice" value={flow.orderInfo.couponPrice}
                      disabled={flow.step === constant.flow_end}
                      onChange={e => orderInfoChange(e, 'couponPrice')}/>
-              <Input label='广场券优惠金额' className="price" name="couponMallPrice" value={orderInfo.couponMallPrice}
+              <Input label='广场券优惠金额' className="price" name="couponMallPrice"
+                     value={flow.orderInfo.couponMallPrice}
                      disabled={flow.step === constant.flow_end}
                      onChange={e => orderInfoChange(e, 'couponMallPrice')}/>
-              <Input label='代金券优惠金额' className="price" name="cashPrice" value={orderInfo.cashPrice}
+              <Input label='代金券优惠金额' className="price" name="cashPrice" value={flow.orderInfo.cashPrice}
                      disabled={flow.step === constant.flow_end}
                      onChange={e => orderInfoChange(e, 'cashPrice')}/>
             </div>
 
             <div>
-              <Input label='运费' className="price" name="freightPrice" value={orderInfo.freightPrice}
+              <Input label='运费' className="price" name="freightPrice" value={flow.orderInfo.freightPrice}
                      disabled={flow.step === constant.flow_end}
                      onChange={e => orderInfoChange(e, 'freightPrice')}/>
             </div>
@@ -391,12 +393,12 @@ export default function BrandAuto({}) {
         </div>
         <div className="flow-card-foot">
           <div className="flow-card-foot-btn">
-            <button type="button" className='create' onClick={createOrder} disabled={flow.step === constant.flow_end}>创
-              建
-            </button>
-            <button type="button" className='reset' onClick={resetOrder} disabled={flow.step === constant.flow_end}>重
-              置
-            </button>
+            <Button type="button" color='success' onClick={createOrder} disabled={isDisable()}>
+              创 建
+            </Button>
+            <Button type="button" color='warn' onClick={resetOrder} disabled={isDisable()}>
+              重 置
+            </Button>
           </div>
         </div>
       </FlowDiv>
