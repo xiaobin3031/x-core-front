@@ -308,9 +308,6 @@ export default function BrandAuto({}) {
           }
           <span className='errmsg-span'>{flow.errMsg}</span>
         </div>
-        <form>
-
-        </form>
         <div className="flow-card-body">
           {
             curCreateGoods.map((goods, index) => {

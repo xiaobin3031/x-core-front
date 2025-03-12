@@ -38,20 +38,13 @@ export default function Input({...props}) {
   }
 
   return (
-    <div className={`x-input-label ${cls.join(' ')}`}>
+    <div className={`x-input-label ${cls.join(' ')}`} key={`x-input-label-key-${props.key}`}>
       <span className='label-text' onClick={() => inputRef.current.focus()}>
         {label}
       </span>
       <input
-        type={props.type || 'text'}
-        style={props.style}
+        {...props}
         ref={inputRef}
-        key={props.key}
-        name={props.name}
-        className={props.className}
-        value={props.value}
-        onChange={props.onChange}
-        disabled={!!props.disabled}
         onFocus={e => onFocus(e)}
         onBlur={e => onBlur(e)}
       />

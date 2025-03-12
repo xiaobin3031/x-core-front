@@ -1,5 +1,5 @@
 .x-input-label {
-    --label-height: 35px;
+    --label-height: 40px;
     --label-span-height: 14px;
     --label-span-init-top: calc((var(--label-height) - var(--label-span-height)) / 2);
 
@@ -15,11 +15,12 @@
         height: 100%;
         box-sizing: border-box;
         border: 1px solid rgba(37, 37, 37, 0.5);
-        padding-top: 10px;
+        padding-top: 5px;
         padding-left: 10px;
         border-radius: 5px;
+        font-size: 18px;
 
-        /*改变自动选中后的背景颜色变化*/
+        /*改变自动填充后的背景颜色变化*/
         &:-webkit-autofill {
             -webkit-box-shadow: 0 0 0 1000px rgb(255, 255, 255) inset !important; /* 改变背景色 */
         }
