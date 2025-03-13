@@ -9,8 +9,18 @@ export default function Button({children, loading, ...props}) {
   const cls = props.className?.split(' ') || []
   cls.push('x-button')
 
+  if (!props.style) {
+    props.style = {}
+  }
+
   if (!!props.color) {
-    cls.push(props.color)
+    if (props.color.indexOf('#') === 0) {
+      if (!props.style.color) {
+        props.style.color = props.color
+      }
+    } else {
+      cls.push(props.color)
+    }
   }
 
   delete props.className
