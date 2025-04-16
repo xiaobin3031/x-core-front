@@ -1,21 +1,54 @@
 body {
     display: block;
-    margin: 0;
+    margin: 5px;
 }
 
 .navs {
     height: 100%;
     overflow-y: scroll;
-    width: 200px;
+    display: flex;
 
     &::-webkit-scrollbar {
         display: none;
     }
 
-    & ul {
-        width: 100%;
-        max-height: 100%;
-        list-style: none;
+    & > .nav-container {
+        flex-grow: 1;
+
+        & > ul {
+            margin: 0;
+            padding-top: 50px;
+            width: 100%;
+            box-sizing: border-box;
+            height: 100%;
+            list-style: none;
+            border: 1px solid black;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            & > li {
+                cursor: pointer;
+                border: 1px solid black;
+                width: 100px;
+                height: 100px;
+                border-radius: 50%;
+
+                display: flex;
+                align-items: center;
+                justify-content: center;
+
+                &:not(:first-child) {
+                    margin-left: 30px;
+                }
+
+                /*渐变背景色*/
+                &:hover {
+                    background: linear-gradient(to right, #ffffff, #627cfb) center center no-repeat;
+                }
+            }
+        }
     }
 }
 

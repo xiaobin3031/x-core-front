@@ -43,7 +43,7 @@ function Navs() {
   }
 
   function changeMode(e) {
-    const modeId = e.target.value;
+    const modeId = +e.target.value;
     setMode(modeId);
     setNavItem(navList.find(a => a.modeId === modeId)?.component)
   }
@@ -51,28 +51,33 @@ function Navs() {
   return (
     <>
       <div className='navs'>
-        <div>
+        <div className='nav-mode'>
           {/*  导航  */}
           <select onChange={changeMode}>
             {
               modes.map(mode => {
-                return <option value={mode.id}>{mode.name}</option>
+                return <option key={`nav-mode-${mode.id}`} value={mode.id}>{mode.name}</option>
               })
             }
           </select>
         </div>
-        <div>
+        <div className='nav-container'>
           <ul>
             {
-              navList.filter(nav => !nav.modeId || nav.modeId.indexOf(mode) > -1).map(nav => {
-                return <li onClick={() => clickNav(nav)}>{nav.name}</li>
+              navList.filter(nav => !nav.modeId || nav.modeId.indexOf(mode) > -1).map((nav,index) => {
+                return <li key={`nav-item-${nav.modeId}-${index}`} onClick={() => clickNav(nav)}><span>{nav.name}</span></li>
               })
             }
           </ul>
         </div>
       </div>
       <div className='container'>
-        {!!navItem && navItem}
+        <div className='container-tools'>
+
+        </div>
+        <div className='container-context'>
+          {!!navItem && navItem}
+        </div>
       </div>
     </>
   )
