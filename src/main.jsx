@@ -4,6 +4,7 @@ import './index.css'
 import Note from "./page/note/Note.jsx";
 import BrandAuto from './page/brand_auto/BrandAuto.jsx'
 import Sql from "./page/sql/Sql.jsx";
+import Ftp from "./page/ftp/Ftp.jsx";
 
 const modes = [
   {
@@ -13,6 +14,10 @@ const modes = [
   {
     id: 2,
     name: 'my'
+  },
+  {
+    id: 3,
+    name: 'home'
   }
 ]
 const navList = [
@@ -30,6 +35,11 @@ const navList = [
     name: '品牌测试',
     modeId: [1],
     component: <BrandAuto/>
+  },
+  {
+    name: '网盘',
+    modelId: [3],
+    component: <Ftp />
   }
 ]
 
@@ -71,14 +81,9 @@ function Navs() {
           </ul>
         </div>
       </div>
-      <div className='container'>
-        <div className='container-tools'>
-
-        </div>
-        <div className='container-context'>
-          {!!navItem && navItem}
-        </div>
-      </div>
+      {
+        !!navItem && <div className='container'>{navItem}</div>
+      }
     </>
   )
 }
