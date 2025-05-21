@@ -1,14 +1,41 @@
+
 import './ftp.css'
 import ajax from "../util/ajax.js";
 import {useEffect, useState} from "react";
-import {sampleByFilename} from "./fileTypeToSample.js";
 
 export default function Ftp() {
 
   const [files, setFiles] = useState([])
 
   useEffect(() => {
-    freshDirs()
+	  // freshDirs()
+	  const list = []
+	  list.push({name: '测试文件夹'})
+	  list.push({name: '测试文件夹2'})
+	  list.push({name: '测试文件夹3'})
+	  list.push({name: '测试文件夹4'})
+	  list.push({name: '测试文件夹5'})
+	  list.push({name: '测试文件夹6'})
+	  list.push({name: '测试文件夹7'})
+	  list.push({name: '测试文件夹9'})
+	  list.push({name: '测试文件夹10'})
+	  list.push({name: '测试文件夹11'})
+	  list.push({name: '测试文件夹12'})
+	  list.push({name: '测试文件夹13'})
+	  list.push({name: '测试文件夹14'})
+	  list.push({name: '测试文件夹15'})
+	  list.push({isFile: true, name: '测试文件1'})
+	  list.push({isFile: true, name: '测试文件2'})
+	  list.push({isFile: true, name: '测试文件4'})
+	  list.push({isFile: true, name: '测试文件5'})
+	  list.push({isFile: true, name: '测试文件6'})
+	  list.push({isFile: true, name: '测试文件7'})
+	  list.push({isFile: true, name: '测试文件8'})
+	  list.push({isFile: true, name: '测试文件9'})
+	  list.push({isFile: true, name: '测试文件10'})
+	  list.push({isFile: true, name: '测试文件11'})
+	  list.push({isFile: true, name: '测试文件12'})
+	  setFiles(list)
   }, []);
 
   function freshDirs() {
@@ -31,35 +58,20 @@ export default function Ftp() {
           </svg>
         </div>
         {
-          files.map(file => {
-            if (file.isFile) {
-              return (
-                <div className='ftp-item file'>
-                  <div className='sample'>
-                    {
-                      !!file.sample && <img src={file.sample}  alt='sample'/>
-                    }
-                    {
-                      !file.sample && sampleByFilename(file.name)
-                    }
-                  </div>
-                  <div className='info'>
-                    {file.name}
-                  </div>
-                </div>
-              )
-            } else {
-              return (
-                <div className='ftp-item fold'>
-                  <svg className="icon" viewBox="0 0 1024 1024" version="1.1"
-                       xmlns="http://www.w3.org/2000/svg" width="40" height="40">
-                    <path
-                      d="M810.666667 85.333333a85.333333 85.333333 0 0 1 85.333333 85.333334v152.021333c36.821333 9.493333 64 42.88 64 82.645333v405.333334a128 128 0 0 1-128 128H192a128 128 0 0 1-128-128V298.666667a85.376 85.376 0 0 1 64-82.645334V170.666667a85.333333 85.333333 0 0 1 85.333333-85.333334h597.333334zM128.149333 296.170667L128 298.666667v512a64 64 0 0 0 60.245333 63.893333L192 874.666667h640a64 64 0 0 0 63.893333-60.245334L896 810.666667V405.333333a21.333333 21.333333 0 0 0-18.837333-21.184L874.666667 384H638.165333l-122.069333-101.717333a21.333333 21.333333 0 0 0-10.688-4.736l-2.986667-0.213334H149.333333a21.333333 21.333333 0 0 0-21.184 18.837334zM535.189333 213.333333l127.978667 106.666667H832V170.666667a21.333333 21.333333 0 0 0-18.837333-21.184L810.666667 149.333333H213.333333a21.333333 21.333333 0 0 0-21.184 18.837334L192 170.666667v42.666666h343.168z"
-                      fill="#333333"></path>
-                  </svg>
-                </div>
-              )
-            }
+          files.map((file,index) => {
+            const type = !!file.isFile ? 'file': 'fold'
+            return (
+            <div className={`ftp-item ${type}`} key={`ftp-${index}-${type}-${file.name}`}>
+              <div className='sample'>
+              {
+                <img src={file.sample} />
+              }
+              </div>
+              <div className='info'>
+              {file.name}
+              </div>
+            </div>
+            )
           })
         }
       </div>

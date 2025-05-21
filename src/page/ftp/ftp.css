@@ -3,4 +3,24 @@
     width: 100%;
     height: 100%;
     background-color: white;
+
+	& .ftp-container {
+		display: flex;
+		align-items: center;
+		gap: 30px;
+		flex-wrap: wrap;
+
+	}
+
+	& .ftp-item {
+		border: 1px solid #cccccc;
+
+		& .sample, &.add {
+			width: 100px;
+			height: 100px;
+		}
+		& .info {
+			font-size: 12px;
+		}
+	}
 }
