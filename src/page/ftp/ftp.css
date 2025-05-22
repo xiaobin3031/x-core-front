@@ -4,6 +4,12 @@
     height: 100%;
     background-color: white;
 
+	& .ftp-head {
+		height: 30px;
+		padding-left: 30px;
+
+	}
+
 	& .ftp-container {
 		display: flex;
 		align-items: center;
@@ -16,8 +22,13 @@
 		border: 1px solid #cccccc;
 
 		& .sample, &.add {
-			width: 100px;
+			width: 200px;
 			height: 100px;
+			cursor: pointer;
+
+			display: flex;
+			align-items: center;
+			justify-content: center;
 		}
 		& .info {
 			font-size: 12px;

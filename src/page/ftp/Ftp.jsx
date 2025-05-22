@@ -2,10 +2,12 @@
 import './ftp.css'
 import ajax from "../util/ajax.js";
 import {useEffect, useState} from "react";
+import {AddIcon, FileIcon, FoldIcon} from '../components/Icon.jsx';
 
 export default function Ftp() {
 
   const [files, setFiles] = useState([])
+  const [headInfo, setHeadInfo] = useState({})
 
   useEffect(() => {
 	  // freshDirs()
@@ -44,31 +46,41 @@ export default function Ftp() {
     })
   }
 
+  function itemClick(item){
+
+  }
+
+  function addFile(){
+
+  }
+
   return (
     <div className='ftp'>
       <div className='ftp-head'>
-
+        <span className="path">{headInfo.path}</span>
       </div>
       <div className='ftp-container'>
-        <div className='ftp-item add'>
-          <svg className="icon" viewBox="0 0 1024 1024" version="1.1"
-               xmlns="http://www.w3.org/2000/svg" width="40" height="40">
-            <path d="M0 465.454545l1024 0 0 93.090909-1024 0 0-93.090909Z"></path>
-            <path d="M465.454545 0l93.090909 0 0 1024-93.090909 0 0-1024Z"></path>
-          </svg>
+        <div className='ftp-item add' onClick={addFile}>
+          <AddIcon />
         </div>
         {
           files.map((file,index) => {
             const type = !!file.isFile ? 'file': 'fold'
             return (
             <div className={`ftp-item ${type}`} key={`ftp-${index}-${type}-${file.name}`}>
-              <div className='sample'>
+              <div className='sample' onClick={() => itemClick(file)}>
               {
-                <img src={file.sample} />
+                !!file.sample && <img src={file.sample} />
+              }
+              {
+                !file.sample && !!file.isFile && <FileIcon />
+              }
+              {
+                !file.sample && !file.isFile && <FoldIcon />
               }
               </div>
               <div className='info'>
-              {file.name}
+                {file.name}
               </div>
             </div>
             )
