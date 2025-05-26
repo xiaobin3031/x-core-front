@@ -1,17 +1,25 @@
 
 import './ftp.css'
 import ajax from "../util/ajax.js";
-import {useEffect, useState} from "react";
-import {AddIcon, FileIcon, FoldIcon} from '../components/Icon.jsx';
+import {useEffect, useState, useRef} from "react";
+import {AddIcon, FileIcon, FoldIcon, FileAddIcon, FoldAddIcon} from '../components/Icon.jsx';
 
 export default function Ftp() {
 
   const [files, setFiles] = useState([])
-  const [headInfo, setHeadInfo] = useState({})
+  const [headInfo, setHeadInfo] = useState({
+    path: ['文件夹1', '文件夹2']
+  })
+  const [uploadProgress, setUploadProgress] = useState({})
+
+  const newFileInputRef = useRef(null)
 
   useEffect(() => {
-	  // freshDirs()
+    ajax.get('/ftp/listDirs').then(res => {
+      freshDirs(res.data)
+    })
 	  const list = []
+    list.push({name :'上传的文件', isFile: true, uploading: true})
 	  list.push({name: '测试文件夹'})
 	  list.push({name: '测试文件夹2'})
 	  list.push({name: '测试文件夹3'})
@@ -40,52 +48,126 @@ export default function Ftp() {
 	  setFiles(list)
   }, []);
 
-  function freshDirs() {
-    ajax.get('/ftp/listDirs').then(files => {
-      setFiles(files)
-    })
+  function freshDirs(data) {
+    setFiles(data.files)
+    headInfo.path = data.path
+    setHeadInfo({...headInfo})
   }
 
   function itemClick(item){
-
+    if(!!item.isFile){
+      // file todo preview
+    }else{
+      // fold
+      ajax.post('/ftp/changeDir', {name: item.name}).then(res => {
+        freshDirs(res.data)
+      })
+    }
   }
 
   function addFile(){
+    newFileInputRef.current.click()
+  }
 
+  function fileChange(e){
+    const file = e.target.files[0]
+    if(file) {
+      files.unshift({
+        name: file.name,
+        isFile: true,
+        uploading: true
+      })
+      uploadProgress[file.name] = {
+        size: file.size,
+        progress: 0
+      }
+      setUploadProgress({...uploadProgress})
+      setTimeout(() => {
+        ajax.uploadFile('/ftp/uploadFile', file, ({percent}) => {
+          uploadProgress[file.name].progress = percent
+          setUploadProgress({...uploadProgress})
+        }, 2000)
+      })
+    }
+  }
+
+  function addFold() {
+
+  }
+
+  function goToDir(e){
+    ajax.post('/ftp/changeDir', {name: e.target.innerText, direction: true}).then(res => {
+      freshDirs(res.data)
+    })
   }
 
   return (
     <div className='ftp'>
       <div className='ftp-head'>
-        <span className="path">{headInfo.path}</span>
+        <div className="path">
+          <a onClick={goToDir}>root</a>
+          {
+            !!headInfo.path && headInfo.path.length > 0 &&
+              headInfo.path.map((p, i) => {
+                if(i == headInfo.path.length - 1){
+                  return <span key={`head-path-${p}`}>{p}</span>
+                }else{
+                  return <a onClick={goToDir} key={`head-path-${p}`}>{p}</a>
+                }
+              })
+          }
+        </div>
+        <div className="btns">
+          <span onClick={addFile}><FileAddIcon width={20} height={20} fill='green' /></span>
+          <span onClick={addFold}><FoldAddIcon width={20} height={20} fill='green' /></span>
+          <input type="file" hidden="true" ref={newFileInputRef} onChange={fileChange}/>
+        </div>
       </div>
       <div className='ftp-container'>
-        <div className='ftp-item add' onClick={addFile}>
-          <AddIcon />
-        </div>
         {
           files.map((file,index) => {
+            if(!!file.uploading) {
+              return (
+                <div className={`ftp-item file uploading`} key={`ftp-${index}-file-${file.name}`}>
+                  <div className='info'>
+                    {file.name}
+                  </div>
+                  <div className="sample"><Progress percent={uploadProgress[file.name]?.percent || 0}/></div>
+                </div>
+              )
+            }
             const type = !!file.isFile ? 'file': 'fold'
             return (
-            <div className={`ftp-item ${type}`} key={`ftp-${index}-${type}-${file.name}`}>
-              <div className='sample' onClick={() => itemClick(file)}>
-              {
-                !!file.sample && <img src={file.sample} />
-              }
-              {
-                !file.sample && !!file.isFile && <FileIcon />
-              }
-              {
-                !file.sample && !file.isFile && <FoldIcon />
-              }
+              <div className={`ftp-item ${type}`} key={`ftp-${index}-${type}-${file.name}`}>
+                <div className='info'>
+                  {file.name}
+                </div>
+                <div className='sample' onClick={() => itemClick(file)}>
+                {
+                  !!file.sample && <img src={file.sample} />
+                }
+                {
+                  !file.sample && !!file.isFile && <FileIcon />
+                }
+                {
+                  !file.sample && !file.isFile && <FoldIcon />
+                }
+                </div>
               </div>
-              <div className='info'>
-                {file.name}
-              </div>
-            </div>
             )
           })
         }
+      </div>
+    </div>
+  )
+}
+
+function Progress({percent}){
+  
+  return (
+    <div className="file-upload-progress" style={{'--progress': `${percent}`}}>
+      <div className='overlay'>
+        <div className='progress-bg' data-left={`${100 - percent}%`}></div>
       </div>
     </div>
   )

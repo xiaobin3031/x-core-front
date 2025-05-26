@@ -60,27 +60,30 @@ function Navs() {
 
   return (
     <>
-      <div className='navs'>
-        <div className='nav-mode'>
-          {/*  导航  */}
-          <select onChange={changeMode}>
-            {
-              modes.map(mode => {
-                return <option key={`nav-mode-${mode.id}`} value={mode.id}>{mode.name}</option>
-              })
-            }
-          </select>
-        </div>
-        <div className='nav-container'>
-          <ul>
-            {
-              navList.filter(nav => !nav.modeId || nav.modeId.indexOf(mode) > -1).map((nav,index) => {
-                return <li key={`nav-item-${nav.modeId}-${index}`} onClick={() => clickNav(nav)}><span>{nav.name}</span></li>
-              })
-            }
-          </ul>
-        </div>
-      </div>
+      {
+        !navItem && 
+          <div className='navs'>
+            <div className='nav-mode'>
+              {/*  导航  */}
+              <select onChange={changeMode}>
+                {
+                  modes.map(mode => {
+                    return <option key={`nav-mode-${mode.id}`} value={mode.id}>{mode.name}</option>
+                  })
+                }
+              </select>
+            </div>
+            <div className='nav-container'>
+              <ul>
+                {
+                  navList.filter(nav => !nav.modeId || nav.modeId.indexOf(mode) > -1).map((nav,index) => {
+                    return <li key={`nav-item-${nav.modeId}-${index}`} onClick={() => clickNav(nav)}><span>{nav.name}</span></li>
+                  })
+                }
+              </ul>
+            </div>
+          </div>
+      }
       {
         !!navItem && <div className='container'>{navItem}</div>
       }

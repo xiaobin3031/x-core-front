@@ -15,6 +15,40 @@ function post(path, data = {}, options = {}) {
   return ajax6(path, data, {type: 'post', ...options});
 }
 
+function uploadFile(path, file, progressCb, data = {}, options = {}) {
+  return new Promise((resolve, reject) => {
+    options = {...defaultAjax6Option, ...options}
+    const xhr = new XMLHttpRequest();
+    if (!options.type) {
+      options.type = 'post';
+    }
+    const formData = new FormData();
+    formData.append('file', file)
+    formData.append('filename', file.name)
+    xhr.upload.onprogress = (event) => {
+      if(event.lengthComputable) {
+        const percentComplete = Math.round(event.loaded / event.total * 100)
+        progressCb({percent: percentComplete})
+      }
+    }
+    let url = `${baseUrl}${path}`;
+    xhr.onload = () => {
+      const res = JSON.parse(xhr.response || '{}')
+      if (xhr.readyState === 4 && xhr.status >= 200 && xhr.status < 300 && res.code === 0) {
+        if (res.code === 0) {
+          resolve(res.data)
+          return
+        } else {
+          // todo 显示错误
+          window.alert(res.msg)
+        }
+      }
+      reject(res)
+    }
+    xhr.open(options.type, url, true)
+  });
+}
+
 function ajax6(path, data = {}, options = {}) {
   return new Promise((resolve, reject) => {
     options = {...defaultAjax6Option, ...options}
@@ -82,5 +116,6 @@ export default {
   ajax6,
   get,
   post,
-  ajax6File
+  ajax6File,
+  uploadFile
 }
