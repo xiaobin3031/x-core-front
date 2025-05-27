@@ -17,7 +17,7 @@ export default function Ftp() {
   const [clickedFile, setClickedFile] = useState(null)
   const [moreActionPos, setMoreActionPos] = useState(null)
 
-  const newFileInputRef = useRef(null), foldInputRef = useRef(null)
+  const newFileInputRef = useRef(null), foldInputRef = useRef(null), ftpContainerRef = useRef(null)
 
   useEffect(() => {
     ajax.get('/ftp/listDirs').then(res => {
@@ -117,14 +117,25 @@ export default function Ftp() {
   const moreAction = (e, item) => {
     setClickedFile(item)
     const rect = e.target.getBoundingClientRect()
+    console.log('scrollTop', ftpContainerRef.current?.scrollTop, 'top', rect.top, 'e', e)
     setMoreActionPos({
-      "top": (rect.top + e.target.clientHeight + 7).toFixed(0) + "px",
+      "top": (ftpContainerRef.current?.scrollTop + rect.top + e.target.clientHeight - 40).toFixed(0) + "px",
       "left": (rect.left - 10).toFixed(0) + 'px'
     })
   }
 
   const deleteFile = () => {
-    console.log('deleteFile')
+    ajax.post('/ftp/removeFile', {id: clickedFile.id}).then(res => {
+      setFiles(files.filter(a => a.id !== clickedFile.id))
+    })
+  }
+
+  const renameFile = () => {
+
+  }
+
+  const moveFile = () => {
+
   }
 
   function MoreActions({}) {
@@ -132,6 +143,8 @@ export default function Ftp() {
     return (
       <div className="more-actions" style={moreActionPos}>
         <div onClick={deleteFile}>Delete</div>
+        <div onClick={renameFile}>Rename</div>
+        <div onClick={moveFile}>Move</div>
       </div>
     )
   }
@@ -166,7 +179,7 @@ export default function Ftp() {
             <input type="file" hidden={true} ref={newFileInputRef} onChange={fileChange}/>
           </div>
         </div>
-        <div className='ftp-container'>
+        <div className='ftp-container' ref={ftpContainerRef}>
           {
             files.map((file,index) => {
               if(!!file.uploading) {
@@ -201,9 +214,9 @@ export default function Ftp() {
               )
             })
           }
+          {!!moreActionPos && <MoreActions />}
         </div>
       </div>
-      {!!moreActionPos && <MoreActions />}
     </>
   )
 }
