@@ -1,11 +1,13 @@
 
 .ftp {
-    width: 100%;
+	--ftp-head-height: 40px;
+    width: calc(100% - 5px);
     height: calc(100% - 30px);
 
 	& .ftp-head {
-		height: 30px;
+		height: var(--ftp-head-height);
 		padding-left: 30px;
+		border-bottom: 1px solid #ccc;
 		
 		display: flex;
 		align-items: center;
@@ -36,38 +38,42 @@
 
 		& .btns {
 			margin-left: 30px;
+			height: 50%;
 
 			display: flex;
 			align-items: center;
 			gap: 10px;
 
-			& span {
+			& > span {
 				display: flex;
 				align-items: center;
+				justify-content: center;
+				height: 100%;
 
 				cursor: pointer;
 			}
 		}
-
 	}
 
 	& .ftp-container {
-		padding-left: 30px;
 		max-height: calc(100% - 30px);
+		height: calc(100% - var(--ftp-head-height));
 		overflow-y: scroll;
-		padding-bottom: 30px;
+		padding-top: 30px;
+		padding-left: 100px;
+		padding-right: 100px;
 
-		display: flex;
-		align-items: center;
+		display: grid;
+		grid-template-columns: repeat(6, 1fr);
 		gap: 30px;
-		flex-wrap: wrap;
+		column-gap: 60px;
 	}
 
 	& .ftp-item {
 		border: 1px solid #cccccc;
 
 		& .sample {
-			width: 250px;
+			width: 100%;
 			height: 200px;
 			cursor: pointer;
 
@@ -82,6 +88,15 @@
 			white-space: nowrap;
 			overflow: hidden;
 			text-overflow: ellipsis;
+		}
+
+		& .info:not(.uploading) {
+			display: flex;
+			justify-content: space-between;
+			
+			& > span {
+				width: 20px;
+			}
 		}
 	}
 
@@ -130,5 +145,31 @@
 				}
 			}
 		}
+	}
+}
+
+.more-actions {
+	position: absolute;
+	height: 100px;
+	background-color: white;
+	border: 1px solid #ccc;
+	border-radius: 5px;
+	padding: 10px 10px;
+
+	display: flex;
+
+	& > div {
+		cursor: pointer;
+	}
+
+	&::before{
+		content: '';
+		position: relative;
+		width: 10px;
+		height: 10px;
+		border-top: 1px solid #ccc;
+		border-left: 1px solid #ccc;
+		transform: rotate(45deg);
+		background-color: white;
 	}
 }

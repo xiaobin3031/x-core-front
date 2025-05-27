@@ -2,7 +2,9 @@
 import './ftp.css'
 import ajax from "../util/ajax.js";
 import {useEffect, useState, useRef} from "react";
-import {AddIcon, FileIcon, FoldIcon, FileAddIcon, FoldAddIcon} from '../components/Icon.jsx';
+import {AddIcon, FileIcon, FoldIcon, FileAddIcon, FoldAddIcon, MoreIcon} from '../components/Icon.jsx';
+import Input from '../components/Input.jsx'
+import {onEnter} from '../util/key.js'
 
 export default function Ftp() {
 
@@ -11,8 +13,11 @@ export default function Ftp() {
     path: ['文件夹1', '文件夹2']
   })
   const [uploadProgress, setUploadProgress] = useState({})
+  const [addFoldFlag, setAddFoldFlag] = useState(false)
+  const [clickedFile, setClickedFile] = useState(null)
+  const [moreActionPos, setMoreActionPos] = useState(null)
 
-  const newFileInputRef = useRef(null)
+  const newFileInputRef = useRef(null), foldInputRef = useRef(null)
 
   useEffect(() => {
     ajax.get('/ftp/listDirs').then(res => {
@@ -48,13 +53,13 @@ export default function Ftp() {
 	  setFiles(list)
   }, []);
 
-  function freshDirs(data) {
+  const freshDirs = (data) => {
     setFiles(data.files)
     headInfo.path = data.path
     setHeadInfo({...headInfo})
   }
 
-  function itemClick(item){
+  const itemClick = (item) => {
     if(!!item.isFile){
       // file todo preview
     }else{
@@ -65,11 +70,7 @@ export default function Ftp() {
     }
   }
 
-  function addFile(){
-    newFileInputRef.current.click()
-  }
-
-  function fileChange(e){
+  const fileChange = (e) => {
     const file = e.target.files[0]
     if(file) {
       files.unshift({
@@ -91,74 +92,119 @@ export default function Ftp() {
     }
   }
 
-  function addFold() {
-
+  const foldNameChange = (e) => {
+    onEnter(e, () => {
+      const name = e.target.value
+      if(!!name && !!name.trim()){
+        ajax.post('/ftp/addFold', {dirName: name}).then(res => {
+          freshDirs(res.data)
+          setAddFoldFlag(false)
+        })
+      }else{
+        setAddFoldFlag(false)
+        e.target.value = ''
+      }
+    })
   }
 
-  function goToDir(e){
+  
+  const goToDir = (e) => {
     ajax.post('/ftp/changeDir', {name: e.target.innerText, direction: true}).then(res => {
       freshDirs(res.data)
     })
   }
 
-  return (
-    <div className='ftp'>
-      <div className='ftp-head'>
-        <div className="path">
-          <a onClick={goToDir}>root</a>
-          {
-            !!headInfo.path && headInfo.path.length > 0 &&
-              headInfo.path.map((p, i) => {
-                if(i == headInfo.path.length - 1){
-                  return <span key={`head-path-${p}`}>{p}</span>
-                }else{
-                  return <a onClick={goToDir} key={`head-path-${p}`}>{p}</a>
-                }
-              })
-          }
-        </div>
-        <div className="btns">
-          <span onClick={addFile}><FileAddIcon width={20} height={20} fill='green' /></span>
-          <span onClick={addFold}><FoldAddIcon width={20} height={20} fill='green' /></span>
-          <input type="file" hidden="true" ref={newFileInputRef} onChange={fileChange}/>
-        </div>
+  const moreAction = (e, item) => {
+    setClickedFile(item)
+    const rect = e.target.getBoundingClientRect()
+    setMoreActionPos({
+      "top": (rect.top + e.target.clientHeight + 7).toFixed(0) + "px",
+      "left": (rect.left - 10).toFixed(0) + 'px'
+    })
+  }
+
+  const deleteFile = () => {
+    console.log('deleteFile')
+  }
+
+  function MoreActions({}) {
+
+    return (
+      <div className="more-actions" style={moreActionPos}>
+        <div onClick={deleteFile}>Delete</div>
       </div>
-      <div className='ftp-container'>
-        {
-          files.map((file,index) => {
-            if(!!file.uploading) {
-              return (
-                <div className={`ftp-item file uploading`} key={`ftp-${index}-file-${file.name}`}>
-                  <div className='info'>
-                    {file.name}
+    )
+  }
+
+  return (
+    <>
+      <div className='ftp'>
+        <div className='ftp-head'>
+          <div className="path">
+            <a onClick={goToDir}>root</a>
+            {
+              !!headInfo.path && headInfo.path.length > 0 &&
+                headInfo.path.map((p, i) => {
+                  if(i == headInfo.path.length - 1){
+                    return <span key={`head-path-${p}`}>{p}</span>
+                  }else{
+                    return <a onClick={goToDir} key={`head-path-${p}`}>{p}</a>
+                  }
+                })
+            }
+          </div>
+          <div className="btns">
+            <span onClick={() => newFileInputRef.current.click()}><FileAddIcon fill='green' /></span>
+            <span onClick={() => setAddFoldFlag(true)} className="fold-add">
+              {!addFoldFlag && <FoldAddIcon fill='green' />}
+              {!!addFoldFlag && 
+                  <div>
+                    <Input onKeyDown={foldNameChange} label="文件夹名称" autoFocus={true} key="fold-add-key" />
                   </div>
-                  <div className="sample"><Progress percent={uploadProgress[file.name]?.percent || 0}/></div>
+              }
+            </span>
+            <input type="file" hidden={true} ref={newFileInputRef} onChange={fileChange}/>
+          </div>
+        </div>
+        <div className='ftp-container'>
+          {
+            files.map((file,index) => {
+              if(!!file.uploading) {
+                return (
+                  <div className={`ftp-item file uploading`} key={`ftp-${index}-file-${file.name}`}>
+                    <div className='info'>
+                      {file.name}
+                    </div>
+                    <div className="sample"><Progress percent={uploadProgress[file.name]?.percent || 0}/></div>
+                  </div>
+                )
+              }
+              const type = !!file.isFile ? 'file': 'fold'
+              return (
+                <div className={`ftp-item ${type}`} key={`ftp-${index}-${type}-${file.name}`}>
+                  <div className='info'>
+                    <label>{file.name}</label>
+                    <span onClick={(e) => moreAction(e, file)}><MoreIcon /></span>
+                  </div>
+                  <div className='sample' onClick={() => itemClick(file)}>
+                  {
+                    !!file.sample && <img src={file.sample} />
+                  }
+                  {
+                    !file.sample && !!file.isFile && <FileIcon />
+                  }
+                  {
+                    !file.sample && !file.isFile && <FoldIcon />
+                  }
+                  </div>
                 </div>
               )
-            }
-            const type = !!file.isFile ? 'file': 'fold'
-            return (
-              <div className={`ftp-item ${type}`} key={`ftp-${index}-${type}-${file.name}`}>
-                <div className='info'>
-                  {file.name}
-                </div>
-                <div className='sample' onClick={() => itemClick(file)}>
-                {
-                  !!file.sample && <img src={file.sample} />
-                }
-                {
-                  !file.sample && !!file.isFile && <FileIcon />
-                }
-                {
-                  !file.sample && !file.isFile && <FoldIcon />
-                }
-                </div>
-              </div>
-            )
-          })
-        }
+            })
+          }
+        </div>
       </div>
-    </div>
+      {!!moreActionPos && <MoreActions />}
+    </>
   )
 }
 

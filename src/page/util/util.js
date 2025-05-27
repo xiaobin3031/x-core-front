@@ -1,6 +1,10 @@
+let modalId = 5000
 export default {
   gId: function () {
     return new Date().getTime() + '';
+  },
+  modalId: () => {
+    return ++modalId
   }
 }
 

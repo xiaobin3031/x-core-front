@@ -1,10 +1,17 @@
 import './css/input.css'
-import {useRef, useState} from "react";
+import {useRef, useState, useEffect} from "react";
 
-export default function Input({...props}) {
-  let label = props.label || 'Field'
+export default function Input({
+  label="Field", 
+  autoFocus=false, 
+  ...props
+}) {
   const inputRef = useRef(null)
   const [cls, setCls] = useState(props.className?.split(' ') || [])
+
+  useEffect(() => {
+    if(autoFocus) inputRef.current?.focus()
+  }, [])
 
   function onFocus(e) {
     e.stopPropagation()
@@ -39,9 +46,9 @@ export default function Input({...props}) {
 
   return (
     <div className={`x-input-label ${cls.join(' ')}`} key={`x-input-label-key-${props.key}`}>
-      <span className='label-text' onClick={() => inputRef.current.focus()}>
+      <div className='label-text' onClick={() => inputRef.current.focus()}>
         {label}
-      </span>
+      </div>
       <input
         {...props}
         ref={inputRef}

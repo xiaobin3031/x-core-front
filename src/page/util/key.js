@@ -28,11 +28,11 @@ function onKeyMatch(e, keyCode, callback, ctrl) {
   }
 }
 
-function onEnter(e, callback, ctrl) {
+export function onEnter(e, callback, ctrl) {
   onKeyMatch(e, 13, callback, ctrl)
 }
 
-function onDelete(e, callback, ctrl) {
+export function onDelete(e, callback, ctrl) {
   onKeyMatch(e, 8, callback, ctrl)
 }
 
