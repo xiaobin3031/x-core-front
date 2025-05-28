@@ -71,21 +71,28 @@
 
 		& .more-actions {
 			position: absolute;
-			background-color: white;
-			border: 1px solid #ccc;
-			border-radius: 5px;
-			padding-left: 10px;
-			padding-right: 10px;
-			padding-bottom: 5px;
+			
+			display: flex;
 
 			& > div {
-				cursor: pointer;
-
-				&:not(:last-child) {
-					margin-bottom: 4px;
-				}
+				border: 1px solid #ccc;
+				border-radius: 5px;
+				background-color: white;
+				height: 100%;
+				position: relative;
 			}
 
+			& .action-list {
+				left: -15px;
+				padding: 5px 10px;
+
+				& > div {
+					cursor: pointer;
+					&:not(:last-child) {
+						margin-bottom: 4px;
+					}
+				}
+			}
 			&::before{
 				display: block;
 				content: '';
@@ -97,7 +104,35 @@
 				background-color: white;
 				transform: rotate(45deg);
 				top: -6px;
-				left: -2px;
+				left: 9px;
+				z-index: 1;
+			}
+
+			& .dirs-container {
+				display: flex;
+
+				& > div:not(:last-child) {
+					border-right: 1px solid #ccc;
+				}
+			}
+
+			& .dir-list {
+				list-style: none;
+				margin: 0;
+				padding: 10px;
+
+				& > li {
+					cursor: pointer;
+				}
+
+				& > li.active {
+					color: blue;
+					font-weight: bold;
+
+				}
+				& > li:not(:last-child) {
+					margin-bottom: 5px;
+				}
 			}
 		}
 	}

@@ -1,7 +1,7 @@
 .x-input-label {
-    --label-height: 40px;
+    --label-height: 100%;
     --label-span-height: 14px;
-    --label-span-init-top: calc((var(--label-height) - var(--label-span-height)) * 2 / 5);
+    --label-span-init-top: calc((var(--label-height) - var(--label-span-height)) * 3 / 5);
 
     width: 100%;
     height: 100%;

@@ -4,6 +4,7 @@ import {useRef, useState, useEffect} from "react";
 export default function Input({
   label="Field", 
   autoFocus=false, 
+  simple=false,
   ...props
 }) {
   const inputRef = useRef(null)
@@ -46,9 +47,10 @@ export default function Input({
 
   return (
     <div className={`x-input-label ${cls.join(' ')}`} key={`x-input-label-key-${props.key}`}>
-      <div className='label-text' onClick={() => inputRef.current.focus()}>
-        {label}
-      </div>
+      {!simple && <div className='label-text' onClick={() => inputRef.current.focus()}>
+          {label}
+        </div>
+      }
       <input
         {...props}
         ref={inputRef}

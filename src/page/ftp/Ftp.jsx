@@ -24,32 +24,32 @@ export default function Ftp() {
       freshDirs(res.data)
     })
 	  const list = []
-    list.push({name :'上传的文件', isFile: true, uploading: true})
-	  list.push({name: '测试文件夹'})
-	  list.push({name: '测试文件夹2'})
-	  list.push({name: '测试文件夹3'})
-	  list.push({name: '测试文件夹4'})
-	  list.push({name: '测试文件夹5'})
-	  list.push({name: '测试文件夹6'})
-	  list.push({name: '测试文件夹7'})
-	  list.push({name: '测试文件夹9'})
-	  list.push({name: '测试文件夹10'})
-	  list.push({name: '测试文件夹11'})
-	  list.push({name: '测试文件夹12'})
-	  list.push({name: '测试文件夹13'})
-	  list.push({name: '测试文件夹14'})
-	  list.push({name: '测试文件夹15'})
-	  list.push({isFile: true, name: '测试文件1'})
-	  list.push({isFile: true, name: '测试文件2'})
-	  list.push({isFile: true, name: '测试文件4'})
-	  list.push({isFile: true, name: '测试文件5'})
-	  list.push({isFile: true, name: '测试文件6'})
-	  list.push({isFile: true, name: '测试文件7'})
-	  list.push({isFile: true, name: '测试文件8'})
-	  list.push({isFile: true, name: '测试文件9'})
-	  list.push({isFile: true, name: '测试文件10'})
-	  list.push({isFile: true, name: '测试文件11'})
-	  list.push({isFile: true, name: '测试文件12'})
+    list.push({id:1, name :'上传的文件', isFile: true, uploading: true})
+	  list.push({id:2, name: '测试文件夹'})
+	  list.push({id: 3, name: '测试文件夹2'})
+	  list.push({id: 4, name: '测试文件夹3'})
+	  list.push({id: 5, name: '测试文件夹4'})
+	  list.push({id: 6, name: '测试文件夹5'})
+	  list.push({id: 7, name: '测试文件夹6'})
+	  list.push({id: 8, name: '测试文件夹7'})
+	  list.push({id: 9, name: '测试文件夹9'})
+	  list.push({id: 10, name: '测试文件夹10'})
+	  list.push({id: 11, name: '测试文件夹11'})
+	  list.push({id: 12, name: '测试文件夹12'})
+	  list.push({id: 13, name: '测试文件夹13'})
+	  list.push({id: 14, name: '测试文件夹14'})
+	  list.push({id: 15, name: '测试文件夹15'})
+	  list.push({id: 16, isFile: true, name: '测试文件1'})
+	  list.push({id: 17, isFile: true, name: '测试文件2'})
+	  list.push({id: 18, isFile: true, name: '测试文件4'})
+	  list.push({id: 19, isFile: true, name: '测试文件5'})
+	  list.push({id: 20, isFile: true, name: '测试文件6'})
+	  list.push({id: 21, isFile: true, name: '测试文件7'})
+	  list.push({id: 22, isFile: true, name: '测试文件8'})
+	  list.push({id: 23, isFile: true, name: '测试文件9'})
+	  list.push({id: 24, isFile: true, name: '测试文件10'})
+	  list.push({id: 25, isFile: true, name: '测试文件11'})
+	  list.push({id: 26, isFile: true, name: '测试文件12'})
 	  setFiles(list)
   }, []);
 
@@ -93,18 +93,16 @@ export default function Ftp() {
   }
 
   const foldNameChange = (e) => {
-    onEnter(e, () => {
-      const name = e.target.value
-      if(!!name && !!name.trim()){
-        ajax.post('/ftp/addFold', {dirName: name}).then(res => {
-          freshDirs(res.data)
-          setAddFoldFlag(false)
-        })
-      }else{
+    const name = e.target.value
+    if(!!name && !!name.trim()){
+      ajax.post('/ftp/addFold', {dirName: name}).then(res => {
+        freshDirs(res.data)
         setAddFoldFlag(false)
-        e.target.value = ''
-      }
-    })
+      })
+    }else{
+      setAddFoldFlag(false)
+      e.target.value = ''
+    }
   }
 
   
@@ -114,37 +112,142 @@ export default function Ftp() {
     })
   }
 
+  const clearFileClickInfo = () => {
+      setClickedFile(null)
+      setMoreActionPos(null)
+  }
+
   const moreAction = (e, item) => {
-    setClickedFile(item)
-    const rect = e.target.getBoundingClientRect()
-    console.log('scrollTop', ftpContainerRef.current?.scrollTop, 'top', rect.top, 'e', e)
-    setMoreActionPos({
-      "top": (ftpContainerRef.current?.scrollTop + rect.top + e.target.clientHeight - 40).toFixed(0) + "px",
-      "left": (rect.left - 10).toFixed(0) + 'px'
-    })
+    if(!!item.renameFlag) return
+
+    if(!!clickedFile && item.id === clickedFile.id){
+      clearFileClickInfo()
+    }else{
+      setClickedFile(item)
+      const rect = e.target.getBoundingClientRect()
+      setMoreActionPos({
+        "top": (ftpContainerRef.current?.scrollTop + rect.top + e.target.clientHeight - 40).toFixed(0) + "px",
+        "left": (rect.left - 10).toFixed(0) + 'px'
+      })
+    }
   }
 
   const deleteFile = () => {
+    if(!clickedFile) return
     ajax.post('/ftp/removeFile', {id: clickedFile.id}).then(res => {
       setFiles(files.filter(a => a.id !== clickedFile.id))
+      clearFileClickInfo()
     })
   }
 
   const renameFile = () => {
-
+    if(!clickedFile) return
+    clickedFile.renameFlag = true
+    setFiles([...files])
+    setMoreActionPos(null)
   }
 
-  const moveFile = () => {
+  const moveFile = (dir) => {
+    if(!clickedFile) return
+    if(clickedFile.foldId === dir.id) return
+    ajax.post('/ftp/moveFile', {fileId: clickedFile.id, foldId: dir.id}).then(res => {
+      const list = dirs.filter(a => a.id !== clickedFile.id)
+      setFiles([...list])
+      clearFileClickInfo()
+    })
+  }
 
+  const saveFileName = (e) => {
+    const name = e.target.value.trim()
+    if(!name) return
+    if(clickedFile.name === name) {
+      clickedFile.renameFlag = false
+      clearFileClickInfo()
+      setFiles([...files])
+    }else {
+      ajax.post('/ftp/rename', {id: clickedFile.id, newName: name}).then(res => {
+        clickedFile.name = name
+        clickedFile.renameFlag = false
+        setFiles([...files])
+        clearFileClickInfo()
+      })
+    }
   }
 
   function MoreActions({}) {
 
+    const [showDirList, setShowDirList] = useState(false)
+    const [dirs, setDirs] = useState(null)
+
+    // 当前所指的文件夹名称
+    const foldByParentId = useRef({
+      0: [{id: 1, name: '测试1'}, {id: 2, name: '测试2'}],
+      1: [{id: 3, name: '测试3'}, {id: 4, name: '测试4'}, {id: 9, name: '测试9'}, {id: 10, name: '测试10'}],
+      2: [{id: 5, name: '测试5'}, {id: 6, name: '测试6'}],
+      3: [{id: 7, name: '测试7'}, {id: 8, name: '测试8'}]
+    })
+
+    const showDir = () => {
+      let children = foldByParentId.current[0]
+      if(!!children){
+        setDirs([[...children]])
+      }else{
+        ajax.get('/ftp/dirList', {parentId: 0}).then(res => {
+          setShowDirList(true)
+          setDirs([res.data])
+        })
+      }
+    }
+
+    const toMoveFile = (e, dir) => {
+      setShowDirList(false)
+      moveFile(dir)
+    }
+
+    const showChildFold = (e, index, dir) => {
+      const list = dirs.slice(0, index+1)
+      list[index].forEach(a => a.active = dir.id === a.id)
+      let children = foldByParentId.current[dir.id]
+      if(!!children){
+        list.push(children)
+        setDirs([...list])
+      }else{
+        ajax.get('/ftp/foldByParentId', {parentId: dir.id}).then(res => {
+          foldByParentId.current[dir.id] = res.data
+          list.push(res.data)
+          setDirs([...list])
+        })
+      }
+    }
+
     return (
       <div className="more-actions" style={moreActionPos}>
-        <div onClick={deleteFile}>Delete</div>
-        <div onClick={renameFile}>Rename</div>
-        <div onClick={moveFile}>Move</div>
+        <div className="action-list">
+          <div onClick={deleteFile}>Delete</div>
+          <div onClick={renameFile}>Rename</div>
+          <div onClick={showDir}>
+            <div>Move</div>
+          </div>
+        </div>
+        {!!dirs && dirs.length > 0 && 
+          <div className="dirs-container">
+            {
+                dirs.map((folds, j) => {
+                  return (
+                    <div>
+                      <ul className="dir-list">
+                        {
+                          folds.map((dir, i) => {
+                            return <li className={`${!!dir.active ? 'active' : ''}`} key={`dir-li-${dir.id}-${i}`} onClick={e => toMoveFile(e, dir)} onMouseOver={e => showChildFold(e, j, dir)}>{dir.name}</li>
+                          })
+                        }
+                      </ul>
+                    </div>
+                  )
+                })
+            }
+          </div>
+        }
       </div>
     )
   }
@@ -172,7 +275,7 @@ export default function Ftp() {
               {!addFoldFlag && <FoldAddIcon fill='green' />}
               {!!addFoldFlag && 
                   <div>
-                    <Input onKeyDown={foldNameChange} label="文件夹名称" autoFocus={true} key="fold-add-key" />
+                    <Input onKeyDown={(e) => onEnter(e, foldNameChange)} label="文件夹名称" autoFocus={true} key="fold-add-key" onBlur={foldNameChange} />
                   </div>
               }
             </span>
@@ -196,7 +299,9 @@ export default function Ftp() {
               return (
                 <div className={`ftp-item ${type}`} key={`ftp-${index}-${type}-${file.name}`}>
                   <div className='info'>
-                    <label>{file.name}</label>
+                    {!file.renameFlag && <label>{file.name}</label> }
+                    {!!file.renameFlag && 
+                        <Input simple={true} defaultValue={file.name} placeholder={file.name} onKeyDown={e => onEnter(e, saveFileName)} onBlur={saveFileName} autoFocus={true}/>}
                     <span onClick={(e) => moreAction(e, file)}><MoreIcon /></span>
                   </div>
                   <div className='sample' onClick={() => itemClick(file)}>
