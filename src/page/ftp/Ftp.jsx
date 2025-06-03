@@ -64,7 +64,7 @@ export default function Ftp() {
       // file todo preview
     }else{
       // fold
-      ajax.post('/ftp/changeDir', {name: item.name}).then(res => {
+      ajax.post('/ftp/changeDir', {dirName: item.name}).then(res => {
         freshDirs(res.data)
       })
     }
@@ -87,7 +87,9 @@ export default function Ftp() {
         ajax.uploadFile('/ftp/uploadFile', file, ({percent}) => {
           uploadProgress[file.name].progress = percent
           setUploadProgress({...uploadProgress})
-        }, 2000)
+        }).then(res => {
+          // todo upload success
+        })
       })
     }
   }
@@ -134,7 +136,7 @@ export default function Ftp() {
 
   const deleteFile = () => {
     if(!clickedFile) return
-    ajax.post('/ftp/removeFile', {id: clickedFile.id}).then(res => {
+    ajax.post('/ftp/removeFile', {id: clickedFile.id, fileFlag: !!clickedFile.isFile}).then(res => {
       setFiles(files.filter(a => a.id !== clickedFile.id))
       clearFileClickInfo()
     })
