@@ -1,10 +1,12 @@
-import {StrictMode, useState} from 'react'
+import {StrictMode, useState, useRef} from 'react'
 import {createRoot} from 'react-dom/client'
 import './index.css'
 import Note from "./page/note/Note.jsx";
 import BrandAuto from './page/brand_auto/BrandAuto.jsx'
 import Sql from "./page/sql/Sql.jsx";
 import Ftp from "./page/ftp/Ftp.jsx";
+import user from "./page/util/user.js"
+import ajax from "./page/util/ajax.js";
 
 const modes = [
   {
@@ -47,6 +49,11 @@ function Navs() {
 
   const [navItem, setNavItem] = useState(null)
   const [mode, setMode] = useState(null);
+  const [showLoginModal, setShowLoginModal] = useState(false)
+
+  const agreeAutoRegister = useRef(null);
+  const usernameInput = useRef(null)
+  const passwordInput = useRef(null);
 
   function clickNav(nav) {
     setNavItem(nav.component)
@@ -58,21 +65,49 @@ function Navs() {
     setNavItem(navList.find(a => a.modeId === modeId)?.component)
   }
 
+  const login = () => {
+    const data = {
+      username: usernameInput.current.value,
+      password: passwordInput.current.value,
+      agree: agreeAutoRegister.current.value
+    }
+    ajax.post('/user/login', data).then(res => {
+      user.save(res.data)
+    })
+  }
+
+  const userInfo = user.get()
+
   return (
-    <>
-      {
-        !navItem && 
-          <div className='navs'>
-            <div className='nav-mode'>
-              {/*  导航  */}
-              <select onChange={changeMode}>
-                {
-                  modes.map(mode => {
-                    return <option key={`nav-mode-${mode.id}`} value={mode.id}>{mode.name}</option>
-                  })
-                }
-              </select>
+    <div>
+      <header className="main-header">
+        <div className='navs'>
+          <div className='nav-mode'>
+            <select onChange={changeMode}>
+              {
+                modes.map(mode => {
+                  return <option key={`nav-mode-${mode.id}`} value={mode.id}>{mode.name}</option>
+                })
+              }
+            </select>
+          </div>
+        </div>
+        <div className='user-info'>
+          {
+            !!userInfo && <div className='user-info-item'>
+              <span>{userInfo.name}</span>
             </div>
+          }
+          {
+            !userInfo && <div className='user-info-item'>
+              <a onClick={() => setShowLoginModal(true)}>Login</a>
+            </div>
+          }
+        </div>
+      </header>
+      <div className="main-container">
+        {
+          !navItem &&
             <div className='nav-container'>
               <ul>
                 {
@@ -82,12 +117,31 @@ function Navs() {
                 }
               </ul>
             </div>
+        }
+        {
+          !!navItem && <div className='container'>{navItem}</div>
+        }
+      </div>
+      {
+        !!showLoginModal &&
+          <div className="login-modal">
+            <div className="login-username">
+              <input type="text" name="username" ref={usernameInput}/>
+            </div>
+            <div className="login-password">
+              <input type="password" name="password" ref={passwordInput}/>
+            </div>
+            <div className="login-btns">
+              <div><input type="checkbox" ref={agreeAutoRegister} />Auto Register</div>
+              <div>
+                <button type="button" onClick={login}>Login</button>
+                <button type="button">Close</button>
+              </div>
+            </div>
           </div>
       }
-      {
-        !!navItem && <div className='container'>{navItem}</div>
-      }
-    </>
+
+    </div>
   )
 }
 

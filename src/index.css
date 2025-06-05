@@ -1,19 +1,35 @@
 body {
+    --main-head-height: 40px;
     display: block;
     margin: 5px;
+}
+
+.main-header {
+    height: var(--main-head-height);
+    width: 100%;
+
+    display: flex;
+    align-items: center;
 }
 
 .navs {
     height: 100%;
     overflow-y: scroll;
     display: flex;
+    align-items: center;
 
     &::-webkit-scrollbar {
         display: none;
     }
 
+}
+
+.main-container {
+    height: calc(100% - var(--main-head-height));
+
     & > .nav-container {
         flex-grow: 1;
+        height: 100%;
 
         & > ul {
             margin: 0;

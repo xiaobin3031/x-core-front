@@ -1,3 +1,4 @@
+import user from "./user.js";
 const defaultAjax6Option = {
   type: 'POST',
   // contentType: 'application/x-www-form-urlencoded;charset=utf-8'
@@ -51,11 +52,18 @@ function uploadFile(path, file, progressCb, data = {}, options = {}) {
 
 function ajax6(path, data = {}, options = {}) {
   return new Promise((resolve, reject) => {
+    const userInfo =user.get()
+    if(!userInfo) {
+      console.log('not login')
+      reject()
+      return
+    }
     options = {...defaultAjax6Option, ...options}
     const xhr = new XMLHttpRequest();
     if (!options.type) {
       options.type = 'post';
     }
+    xhr.setRequestHeader("Authorization", `Bearer ${userInfo.token}`);
     let url = `${baseUrl}${path}`;
     if (options.type.toLowerCase() === 'get') {
       const query = formatParams(data);
