@@ -50,6 +50,7 @@ function Navs() {
   const [navItem, setNavItem] = useState(null)
   const [mode, setMode] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false)
+  const [userInfo, setUserInfo] = useState(user.get())
 
   const agreeAutoRegister = useRef(null);
   const usernameInput = useRef(null)
@@ -69,14 +70,14 @@ function Navs() {
     const data = {
       username: usernameInput.current.value,
       password: passwordInput.current.value,
-      agree: agreeAutoRegister.current.value
+      agree: agreeAutoRegister.current.value === 'on'
     }
-    ajax.post('/user/login', data).then(res => {
-      user.save(res.data)
+    ajax.post('/login', data).then(res => {
+      user.save(res)
+      setUserInfo(res)
+      setShowLoginModal(false)
     })
   }
-
-  const userInfo = user.get()
 
   return (
     <div>
@@ -95,7 +96,7 @@ function Navs() {
         <div className='user-info'>
           {
             !!userInfo && <div className='user-info-item'>
-              <span>{userInfo.name}</span>
+              <span>{userInfo.username}</span>
             </div>
           }
           {
@@ -125,17 +126,21 @@ function Navs() {
       {
         !!showLoginModal &&
           <div className="login-modal">
-            <div className="login-username">
-              <input type="text" name="username" ref={usernameInput}/>
-            </div>
-            <div className="login-password">
-              <input type="password" name="password" ref={passwordInput}/>
-            </div>
-            <div className="login-btns">
-              <div><input type="checkbox" ref={agreeAutoRegister} />Auto Register</div>
-              <div>
-                <button type="button" onClick={login}>Login</button>
-                <button type="button">Close</button>
+            <div className='modal-content'>
+              <div className="login-username">
+                <label>用户名</label>
+                <input type="text" name="username" ref={usernameInput}/>
+              </div>
+              <div className="login-password">
+                <label>密&nbsp;&nbsp;&nbsp;码</label>
+                <input type="password" name="password" ref={passwordInput}/>
+              </div>
+              <div className="login-btns">
+                <label><input type="checkbox" ref={agreeAutoRegister} />自动注册</label>
+                <div>
+                  <button type="button" onClick={() => setShowLoginModal(false)}>Close</button>
+                  <button type="button" onClick={login}>Login</button>
+                </div>
               </div>
             </div>
           </div>

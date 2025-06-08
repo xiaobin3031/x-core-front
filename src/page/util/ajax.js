@@ -7,6 +7,7 @@ const defaultAjax6Option = {
   }
 };
 const baseUrl = "http://127.0.0.1:6547"
+const notLoginUrl = ['/login'];
 
 function get(path, data = {}, options = {}) {
   return ajax6(path, data, {type: 'get', ...options});
@@ -53,7 +54,7 @@ function uploadFile(path, file, progressCb, data = {}, options = {}) {
 function ajax6(path, data = {}, options = {}) {
   return new Promise((resolve, reject) => {
     const userInfo =user.get()
-    if(!userInfo) {
+    if(!userInfo && notLoginUrl.indexOf(path) === -1) {
       console.log('not login')
       reject()
       return
@@ -63,7 +64,6 @@ function ajax6(path, data = {}, options = {}) {
     if (!options.type) {
       options.type = 'post';
     }
-    xhr.setRequestHeader("Authorization", `Bearer ${userInfo.token}`);
     let url = `${baseUrl}${path}`;
     if (options.type.toLowerCase() === 'get') {
       const query = formatParams(data);
@@ -71,9 +71,15 @@ function ajax6(path, data = {}, options = {}) {
         url += `?${query}`;
       }
       xhr.open(options.type, url, true);
+      if(!!userInfo){
+        xhr.setRequestHeader("Authorization", `Bearer ${userInfo.token}`);
+      }
       xhr.send(null);
     } else if (options.type.toLowerCase() === 'post') {
       xhr.open(options.type, url, true);
+      if(!!userInfo){
+        xhr.setRequestHeader("Authorization", `Bearer ${userInfo.token}`);
+      }
       Object.keys(options.header || {}).forEach(k => xhr.setRequestHeader(k, options.header[k]));
       xhr.send(JSON.stringify(data));
     }

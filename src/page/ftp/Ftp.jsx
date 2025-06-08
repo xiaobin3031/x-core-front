@@ -21,7 +21,7 @@ export default function Ftp() {
 
   useEffect(() => {
     ajax.get('/ftp/listDirs').then(res => {
-      freshDirs(res.data)
+      freshDirs(res)
     })
 	  const list = []
     list.push({id:1, name :'上传的文件', isFile: true, uploading: true})
