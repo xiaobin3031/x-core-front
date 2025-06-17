@@ -24,7 +24,7 @@ function onKeyMatch(e, keyCode, callback, ctrl) {
       }
       if (!controller) return;
     }
-    callback();
+    callback(e);
   }
 }
 

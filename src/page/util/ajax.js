@@ -20,10 +20,9 @@ function post(path, data = {}, options = {}) {
 function uploadFile(path, file, progressCb, data = {}, options = {}) {
   return new Promise((resolve, reject) => {
     options = {...defaultAjax6Option, ...options}
+    const userInfo =user.get()
     const xhr = new XMLHttpRequest();
-    if (!options.type) {
-      options.type = 'post';
-    }
+    options.type = 'post';
     const formData = new FormData();
     formData.append('file', file)
     formData.append('filename', file.name)
@@ -48,6 +47,10 @@ function uploadFile(path, file, progressCb, data = {}, options = {}) {
       reject(res)
     }
     xhr.open(options.type, url, true)
+    if(!!userInfo){
+      xhr.setRequestHeader("Authorization", `Bearer ${userInfo.token}`);
+    }
+    xhr.send(formData);
   });
 }
 

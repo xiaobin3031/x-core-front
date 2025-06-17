@@ -80,7 +80,7 @@ function Navs() {
   }
 
   return (
-    <div>
+    <>
       <header className="main-header">
         <div className='navs'>
           <div className='nav-mode'>
@@ -145,8 +145,7 @@ function Navs() {
             </div>
           </div>
       }
-
-    </div>
+    </>
   )
 }
 
