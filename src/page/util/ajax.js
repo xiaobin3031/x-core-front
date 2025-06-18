@@ -17,6 +17,10 @@ function post(path, data = {}, options = {}) {
   return ajax6(path, data, {type: 'post', ...options});
 }
 
+function downloadFile(path) {
+  window.open(baseUrl + path)
+}
+
 function uploadFile(path, file, progressCb, data = {}, options = {}) {
   return new Promise((resolve, reject) => {
     options = {...defaultAjax6Option, ...options}
@@ -134,5 +138,6 @@ export default {
   get,
   post,
   ajax6File,
-  uploadFile
+  uploadFile,
+  downloadFile
 }

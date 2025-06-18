@@ -19,16 +19,14 @@ export default function Ftp() {
     freshRootDirs()
   }, []);
 
-  const freshRootDirs = () => {
-    ajax.get("/ftp/listDirs").then(res => {
-      freshDirs(res)
-    })
+  const freshRootDirs = async () => {
+    let res = await ajax.get("/ftp/listDirs")
+    freshDirs(res)
   }
 
-  const backTo = () => {
-    ajax.get("/ftp/goBack").then(res => {
-      freshDirs(res)
-    })
+  const backTo = async () => {
+    let res = await ajax.get("/ftp/goBack")
+    freshDirs(res)
   }
 
   const freshDirs = (data) => {
@@ -42,18 +40,17 @@ export default function Ftp() {
     setHeadInfo({...headInfo})
   }
 
-  const itemClick = (item) => {
-    if(!!item.isFile){
+  const itemClick = async (item) => {
+    if(!!item.fileFlag){
       // file todo preview
     }else{
       // fold
-      ajax.post('/ftp/changeDir', {id: item.id}).then(res => {
-        freshDirs(res)
-      })
+      let res = await ajax.post('/ftp/changeDir', {id: item.id})
+      freshDirs(res)
     }
   }
 
-  const fileChange = (e) => {
+  const fileChange = async (e) => {
     const file = e.target.files[0]
     if(file) {
       files.unshift({
@@ -66,25 +63,23 @@ export default function Ftp() {
         progress: 0
       }
       setUploadProgress({...uploadProgress})
-      setTimeout(() => {
-        ajax.uploadFile('/ftp/uploadFile', file, ({percent}) => {
+      setTimeout(async () => {
+        let res = await ajax.uploadFile('/ftp/uploadFile', file, ({percent}) => {
           uploadProgress[file.name].progress = percent
           setUploadProgress({...uploadProgress})
-        }).then(res => {
-          // todo upload success
         })
-      })
+        if(!!res) freshDirs(res);
+      }, 100)
     }
   }
 
-  const foldNameChange = (e) => {
+  const foldNameChange = async (e) => {
     const name = e.target.value
     if(!!name && !!name.trim()){
-      ajax.post('/ftp/addFold', {dirName: name}).then(res => {
-        e.target.value = ""
-        setAddFoldFlag(false)
-        freshDirs(res)
-      })
+      let res = await ajax.post('/ftp/addFold', {dirName: name})
+      e.target.value = ""
+      setAddFoldFlag(false)
+      freshDirs(res)
     }else{
       setAddFoldFlag(false)
       e.target.value = ''
@@ -92,10 +87,9 @@ export default function Ftp() {
   }
 
   
-  const goToDir = (id) => {
-    ajax.post('/ftp/changeDir', {id: id, direction: true}).then(res => {
-      freshDirs(res)
-    })
+  const goToDir = async (id) => {
+    let res = await ajax.post('/ftp/changeDir', {id: id, direction: true})
+    freshDirs(res)
   }
 
   const moreAction = (e, item) => {
@@ -108,53 +102,48 @@ export default function Ftp() {
     setFiles([...files]);
   }
 
-  const saveFileName = (e, file) => {
+  const saveFileName = async (e, file) => {
     const name = e.target.value.trim()
     if(!name) return
     if(file.name === name) {
       file.renameFlag = false
       setFiles([...files])
     }else {
-      ajax.post('/ftp/rename', {fileFlag: file.fileFlag, id: file.id, newName: name}).then(res => {
-        freshDirs(res)
-      })
+      let res = await ajax.post('/ftp/rename', {fileFlag: file.fileFlag, id: file.id, newName: name})
+      freshDirs(res)
     }
   }
 
   function MoreActions({file}) {
 
-    const [showDirList, setShowDirList] = useState(false)
     const [dirs, setDirs] = useState(null)
 
     // 当前所指的文件夹名称
     const foldByParentId = useRef({})
 
-    const showDir = () => {
+    const showDir = async (e) => {
+      e.stopPropagation()
       let children = foldByParentId.current[0]
       if(!!children){
         setDirs([[...children]])
       }else{
-        ajax.get('/ftp/dirList', {parentId: 0}).then(res => {
-          setShowDirList(true)
-          setDirs([res])
-        })
+        let res = await ajax.get('/ftp/foldByParentId', {parentId: 0})
+        setDirs([res])
       }
     }
 
-    const toMoveFile = (e, dir) => {
-      setShowDirList(false)
-      moveFile(dir)
+    const toMoveFile = async (e, dir) => {
+      e.stopPropagation()
+      await moveFile(dir)
     }
 
-    const moveFile = (dir) => {
+    const moveFile = async (dir) => {
       if(file.foldId === dir.id) return
-      ajax.post('/ftp/moveFile', {fileId: file.id, foldId: dir.id}).then(() => {
-        const list = files.filter(a => a.id !== file.id)
-        setFiles([...list])
-      })
+      let res = await ajax.post('/ftp/moveFile', {id: file.id, foldId: dir.id})
+      freshDirs(res)
     }
 
-    const showChildFold = (e, index, dir) => {
+    const showChildFold = async (e, index, dir) => {
       const list = dirs.slice(0, index+1)
       list[index].forEach(a => a.active = dir.id === a.id)
       let children = foldByParentId.current[dir.id]
@@ -162,23 +151,30 @@ export default function Ftp() {
         list.push(children)
         setDirs([...list])
       }else{
-        ajax.get('/ftp/foldByParentId', {parentId: dir.id}).then(res => {
-          foldByParentId.current[dir.id] = res
-          list.push(res)
-          setDirs([...list])
-        })
+        let res = await ajax.get('/ftp/foldByParentId', {parentId: dir.id})
+        foldByParentId.current[dir.id] = res
+        list.push(res)
+        setDirs([...list])
       }
     }
 
-    const deleteFile = () => {
-      ajax.post('/ftp/removeFile', {id: file.id, fileFlag: !!file.isFile}).then(() => {
-        setFiles(files.filter(a => a.id !== file.id))
-      })
+    const deleteFile = async (e) => {
+      e.stopPropagation()
+      let res = await ajax.post('/ftp/removeFile', {id: file.id, fileFlag: !!file.isFile})
+      freshDirs(res)
     }
 
     const renameFile = (e) => {
       e.stopPropagation()
       file.renameFlag = true
+      file.showMoreAction = false
+      setFiles([...files])
+    }
+
+    const downloadFile = async (e) => {
+      e.stopPropagation()
+      let res = await ajax.post('/ftp/prepareFile', {id: file.id})
+      ajax.downloadFile("/ftp/downloadFile?fileToken=" + res)
       file.showMoreAction = false
       setFiles([...files])
     }
@@ -191,16 +187,17 @@ export default function Ftp() {
           <div onClick={showDir}>
             <div>Move</div>
           </div>
+          <div onClick={downloadFile}>Download</div>
         </div>
         {!!dirs && dirs.length > 0 && 
           <div className="dirs-container">
             {
-                dirs.map((folds, j) => {
+                dirs.filter(folds => !!folds && folds.length > 0).map((folds, j) => {
                   return (
                     <div>
                       <ul className="dir-list">
                         {
-                          folds.map((dir, i) => {
+                          folds.filter(dir => dir.id !== file.foldId).map((dir, i) => {
                             return <li className={`${!!dir.active ? 'active' : ''}`} key={`dir-li-${dir.id}-${i}`} onClick={e => toMoveFile(e, dir)} onMouseOver={e => showChildFold(e, j, dir)}>{dir.name}</li>
                           })
                         }
@@ -248,7 +245,7 @@ export default function Ftp() {
         </div>
         <div className='ftp-container' ref={ftpContainerRef}>
           {
-            files.map((file,index) => {
+            files.map(file => {
               if(!!file.uploading) {
                 return (
                   <div className={`ftp-item file uploading`} key={`ftp-file-${file.name}`}>
@@ -270,7 +267,7 @@ export default function Ftp() {
                   </div>
                   <div className='sample' onClick={() => itemClick(file)}>
                   {
-                    !!file.sample && <img src={file.sample} />
+                    !!file.sample && <img src={file.sample}  alt=""/>
                   }
                   {
                     !file.sample && !!file.isFile && <FileIcon />
