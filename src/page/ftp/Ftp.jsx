@@ -1,10 +1,10 @@
-
 import './ftp.css'
 import ajax from "../util/ajax.js";
-import {useEffect, useState, useRef} from "react";
-import {FileIcon, FoldIcon, FileAddIcon, FoldAddIcon, MoreIcon, RefreshIcon, BackIcon} from '../components/Icon.jsx';
+import {useEffect, useRef, useState} from "react";
+import {BackIcon, FileAddIcon, FileIcon, FoldAddIcon, FoldIcon, MoreIcon, RefreshIcon} from '../components/Icon.jsx';
 import Input from '../components/Input.jsx'
 import {onEnter} from '../util/key.js'
+import VideoPlayer from './VideoPlayer.jsx'
 
 export default function Ftp() {
 
@@ -12,11 +12,13 @@ export default function Ftp() {
   const [headInfo, setHeadInfo] = useState({})
   const [uploadProgress, setUploadProgress] = useState({})
   const [addFoldFlag, setAddFoldFlag] = useState(false)
+  const [playVideo, setPlayVideo] = useState(false)
+  const [fileTokens, setFileTokens] = useState({})
 
   const newFileInputRef = useRef(null), ftpContainerRef = useRef(null)
 
   useEffect(() => {
-    freshRootDirs()
+    freshRootDirs().then(() => {})
   }, []);
 
   const freshRootDirs = async () => {
@@ -40,9 +42,17 @@ export default function Ftp() {
     setHeadInfo({...headInfo})
   }
 
+  const isVideo = (file) => {
+    return !!file.fileType && file.fileType.indexOf("video/") === 0;
+  }
+
   const itemClick = async (item) => {
     if(!!item.fileFlag){
-      // file todo preview
+      if(isVideo(item)) {
+        fileTokens.video = await ajax.post('/ftp/prepareFile', {id: item.id, prepareForPlay: true})
+        setFileTokens({...fileTokens})
+        setPlayVideo(true)
+      }
     }else{
       // fold
       let res = await ajax.post('/ftp/changeDir', {id: item.id})
@@ -282,6 +292,7 @@ export default function Ftp() {
             })
           }
         </div>
+        {!!playVideo && <VideoPlayer fileToken={fileTokens['video']} closePlayer={() => setPlayVideo(false)}/> }
       </div>
     </>
   )

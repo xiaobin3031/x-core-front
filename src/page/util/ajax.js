@@ -6,7 +6,7 @@ const defaultAjax6Option = {
     'Content-Type': 'application/json;charset=utf-8'
   }
 };
-const baseUrl = "http://127.0.0.1:6547"
+const baseUrl = `${import.meta.env.VITE_API_BASE}:${import.meta.env.VITE_API_PORT}`
 const notLoginUrl = ['/login'];
 
 function get(path, data = {}, options = {}) {
@@ -21,10 +21,31 @@ function downloadFile(path) {
   window.open(baseUrl + path)
 }
 
+function mediaPlay(path, data= {}, options={}) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", path, true);
+    xhr.responseType = "blob"; // 关键：处理媒体文件
+
+    // 可选：带上 token 鉴权
+    options = {...defaultAjax6Option, ...options}
+    Object.keys(options.header || {}).forEach(k => xhr.setRequestHeader(k, options.header[k]));
+    setAuthorization(xhr)
+
+    xhr.onload = function () {
+      if (xhr.status === 200 || xhr.status === 206) {
+        resolve(xhr.response)
+      } else {
+        reject()
+      }
+    };
+    xhr.send(JSON.stringify(data));
+  });
+}
+
 function uploadFile(path, file, progressCb, data = {}, options = {}) {
   return new Promise((resolve, reject) => {
     options = {...defaultAjax6Option, ...options}
-    const userInfo =user.get()
     const xhr = new XMLHttpRequest();
     options.type = 'post';
     const formData = new FormData();
@@ -51,11 +72,16 @@ function uploadFile(path, file, progressCb, data = {}, options = {}) {
       reject(res)
     }
     xhr.open(options.type, url, true)
-    if(!!userInfo){
-      xhr.setRequestHeader("Authorization", `Bearer ${userInfo.token}`);
-    }
+    setAuthorization(xhr)
     xhr.send(formData);
   });
+}
+
+function setAuthorization(xhr) {
+  const userInfo =user.get()
+  if(!!userInfo){
+    xhr.setRequestHeader("Authorization", `Bearer ${userInfo.token}`);
+  }
 }
 
 function ajax6(path, data = {}, options = {}) {
@@ -78,15 +104,11 @@ function ajax6(path, data = {}, options = {}) {
         url += `?${query}`;
       }
       xhr.open(options.type, url, true);
-      if(!!userInfo){
-        xhr.setRequestHeader("Authorization", `Bearer ${userInfo.token}`);
-      }
+      setAuthorization(xhr)
       xhr.send(null);
     } else if (options.type.toLowerCase() === 'post') {
       xhr.open(options.type, url, true);
-      if(!!userInfo){
-        xhr.setRequestHeader("Authorization", `Bearer ${userInfo.token}`);
-      }
+      setAuthorization(xhr)
       Object.keys(options.header || {}).forEach(k => xhr.setRequestHeader(k, options.header[k]));
       xhr.send(JSON.stringify(data));
     }
@@ -139,5 +161,6 @@ export default {
   post,
   ajax6File,
   uploadFile,
-  downloadFile
+  downloadFile,
+  mediaPlay
 }

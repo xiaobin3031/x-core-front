@@ -5,5 +5,8 @@ export default {
   },
   get: () => {
     return user;
+  },
+  loginToken: () => {
+    return !!user && user.token || void 0;
   }
 }
