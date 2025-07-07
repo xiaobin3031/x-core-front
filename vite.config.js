@@ -16,6 +16,10 @@ export default defineConfig(({ mode }) => {
           target: env.VITE_API_BASE,
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, '')
+        },
+        '/file/sample': {
+          target: `${env.VITE_API_BASE}:${env.VITE_API_PORT}`,
+          changeOrigin: true
         }
       }
     }

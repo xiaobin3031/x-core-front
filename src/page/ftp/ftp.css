@@ -62,6 +62,7 @@
 		padding-top: 30px;
 		padding-left: 100px;
 		padding-right: 100px;
+		overflow-y: scroll;
 
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -126,6 +127,7 @@
 
 				& .dirs-container {
 					display: flex;
+					z-index: 1000;
 
 					& > div:not(:last-child) {
 						border-right: 1px solid #ccc;
@@ -226,3 +228,38 @@
 	}
 }
 
+
+& .sub-dirs {
+	width: 1000px;
+	margin-bottom: 10px;
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+	grid-gap: 10px;
+
+	& > .sub-dir-item {
+		height: 30px;
+		border: 1px solid #cccccc;
+		border-radius: 5px;
+		padding-left: 3px;
+
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+
+		cursor: pointer;
+		text-wrap: nowrap;
+		overflow: hidden;
+
+		&.active {
+			border-color: #4dbbff;
+			background-color: #4dbbff;
+			font-weight: bold;
+			color: white;
+		}
+	}
+
+	&:not(:first-child) {
+		padding-top: 10px;
+		border-top: 1px solid #cccccc;
+	}
+}

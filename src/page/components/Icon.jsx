@@ -1,6 +1,6 @@
 
 export default function Icon({}){
-  
+
   return <></>
 }
 
@@ -11,7 +11,7 @@ export function AddIcon({}){
          xmlns="http://www.w3.org/2000/svg" width="40" height="40">
       <path d="M0 465.454545l1024 0 0 93.090909-1024 0 0-93.090909Z"></path>
       <path d="M465.454545 0l93.090909 0 0 1024-93.090909 0 0-1024Z"></path>
-    </svg> 
+    </svg>
   )
 }
 
@@ -84,6 +84,16 @@ export function BackIcon({width="100%", height="100%", fill="#358EFF"}){
     <svg viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width={width} height={height}>
       <path
         d="M263.570286 530.285714l261.376 261.339429a18.285714 18.285714 0 0 1-25.892572 25.892571l-292.571428-292.571428a18.285714 18.285714 0 0 1 0-25.892572l292.571428-292.571428a18.285714 18.285714 0 0 1 25.892572 25.892571L263.570286 493.714286H804.571429a18.285714 18.285714 0 1 1 0 36.571428H263.570286z"
+        fill={fill}></path>
+    </svg>
+  )
+}
+
+export function RightIcon({width="100%", height="100%", fill="green"}){
+  return (
+    <svg className="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width={width} height={height}>
+      <path
+        d="M822.464 265.344a28.256 28.256 0 0 0-43.072 1.312l-352.96 417.664-181.92-212.992a28.288 28.288 0 0 0-43.104-1.088 37.12 37.12 0 0 0-0.96 48.256l204.096 238.944c5.76 6.752 13.696 10.56 22.016 10.56h0.096a29.088 29.088 0 0 0 22.048-10.656L823.68 313.6c11.52-13.728 11.008-35.328-1.216-48.256"
         fill={fill}></path>
     </svg>
   )

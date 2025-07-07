@@ -2,15 +2,37 @@
 	height: 100%;
 	width: 100%;
 	position: absolute;
-	background-color: rgba(255, 255, 255, 0.3);
+	background-color: rgba(67, 67, 67, 0.88);
 	top: 0;
 	left: 0;
 
-	& > .modal-content {
-		height: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 
-		display: flex;
-		align-items: center;
-		justify-content: center;
+	& > .modal-content {
+		background: white;
+		border-radius: 8px;
+
+		& > .modal-head {
+			border-bottom: 1px solid #cccccc;
+			padding: 10px 5px;
+		}
+
+		& > .modal-body {
+			padding: 10px 5px;
+		}
+
+		& > .modal-foot {
+			display: flex;
+			justify-content: flex-end;
+
+			border-top: 1px solid #cccccc;
+			padding: 10px 5px;
+
+			& > button:last-child {
+				margin-left: 5px;
+			}
+		}
 	}
 }

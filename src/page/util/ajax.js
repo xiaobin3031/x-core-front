@@ -24,11 +24,10 @@ function downloadFile(path) {
 function mediaPlay(path, data= {}, options={}) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", path, true);
-    xhr.responseType = "blob"; // 关键：处理媒体文件
-
     // 可选：带上 token 鉴权
     options = {...defaultAjax6Option, ...options}
+    xhr.open(options.type, path, true);
+    xhr.responseType = "blob"; // 关键：处理媒体文件
     Object.keys(options.header || {}).forEach(k => xhr.setRequestHeader(k, options.header[k]));
     setAuthorization(xhr)
 
@@ -97,6 +96,9 @@ function ajax6(path, data = {}, options = {}) {
     if (!options.type) {
       options.type = 'post';
     }
+    if(!!options.responseType) {
+      xhr.responseType = options.responseType;
+    }
     let url = `${baseUrl}${path}`;
     if (options.type.toLowerCase() === 'get') {
       const query = formatParams(data);
@@ -113,17 +115,22 @@ function ajax6(path, data = {}, options = {}) {
       xhr.send(JSON.stringify(data));
     }
     xhr.onload = () => {
-      const res = JSON.parse(xhr.response || '{}')
-      if (xhr.readyState === 4 && xhr.status >= 200 && xhr.status < 300 && res.code === 0) {
+      if (xhr.readyState === 4 && xhr.status >= 200 && xhr.status < 300) {
+        if(options.responseType === 'blob'){
+          resolve(xhr.response)
+          return
+        }
+        const res = JSON.parse(xhr.response || '{}')
         if (res.code === 0) {
           resolve(res.data)
-          return
         } else {
           // todo 显示错误
           window.alert(res.msg)
+          reject(res)
         }
+      }else{
+        reject("网络错误")
       }
-      reject(res)
     }
   });
 }
