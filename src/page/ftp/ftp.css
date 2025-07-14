@@ -72,6 +72,7 @@
 	}
 
 	& .ftp-item {
+		width: 100%;
 		border: 1px solid #cccccc;
 
 		& .sample {
@@ -161,8 +162,6 @@
 			border-bottom: 1px solid #cccccc;
 			font-size: 16px;
 			white-space: nowrap;
-			overflow: hidden;
-			text-overflow: ellipsis;
 
 			& label {
 				overflow: hidden;
@@ -173,8 +172,15 @@
 		& .info:not(.uploading) {
 			display: flex;
 			justify-content: space-between;
-			
-			& > span {
+			box-sizing: border-box;
+
+			& > .name {
+				width: calc(100% - 20px);
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+
+			& > .icon {
 				width: 20px;
 				cursor: pointer;
 			}

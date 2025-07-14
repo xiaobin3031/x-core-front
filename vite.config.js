@@ -22,6 +22,21 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true
         }
       }
+    },
+    base: './',
+    build: {
+      outDir: 'dist', // 输出目录
+      assetsDir: 'static', // 静态资源目录名
+      sourcemap: false, // 是否生成 source map
+      minify: 'esbuild', // 或 'terser'
+      rollupOptions: {
+        output: {
+          // 控制输出文件名格式
+          entryFileNames: 'assets/[name].[hash].js',
+          chunkFileNames: 'assets/[name].[hash].js',
+          assetFileNames: 'assets/[name].[hash].[ext]'
+        }
+      }
     }
   };
 });

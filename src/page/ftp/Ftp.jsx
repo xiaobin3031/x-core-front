@@ -4,7 +4,6 @@ import {useEffect, useRef, useState} from "react";
 import {
   BackIcon,
   FileAddIcon,
-  FileIcon,
   FoldAddIcon,
   FoldIcon,
   MoreIcon,
@@ -14,6 +13,7 @@ import Input from '../components/Input.jsx'
 import {onEnter} from '../util/key.js'
 import VideoPlayer from './VideoPlayer.jsx'
 import Modal from "../components/Modal.jsx";
+import ScrollXText from "../components/ScrollXText.jsx";
 
 export default function Ftp() {
 
@@ -117,25 +117,11 @@ export default function Ftp() {
 
   const moreAction = (e, item) => {
     e.stopPropagation()
-    if (!!item.renameFlag) return
-
     item.showMoreAction = !item.showMoreAction
     if (!!item.showMoreAction) {
       files.filter(a => a.id !== item.id).forEach(a => a.showMoreAction = false)
     }
     setFiles([...files]);
-  }
-
-  const saveFileName = async (e, file) => {
-    const name = e.target.value.trim()
-    if (!name) return
-    if (file.name === name) {
-      file.renameFlag = false
-      setFiles([...files])
-    } else {
-      let res = await ajax.post('/ftp/rename', {fileFlag: file.fileFlag, id: file.id, newName: name})
-      freshDirs(res)
-    }
   }
 
   const closeAll = (e) => {
@@ -355,11 +341,10 @@ export default function Ftp() {
               return (
                 <div className={`ftp-item ${type}`} key={`ftp-${type}-${file.id}`}>
                   <div className='info'>
-                    {!file.renameFlag && <label title={file.name}>{file.name}</label>}
-                    {!!file.renameFlag &&
-                      <Input simple={true} defaultValue={file.name} placeholder={file.name}
-                             onKeyDown={e => onEnter(e, () => saveFileName(e, file))} autoFocus={true}/>}
-                    <span onClick={(e) => moreAction(e, file)}><MoreIcon/></span>
+                    <div className='name'>
+                      <ScrollXText text={file.name} />
+                    </div>
+                    <span className='icon' onClick={(e) => moreAction(e, file)}><MoreIcon/></span>
                   </div>
                   <div className='sample' onClick={() => itemClick(file)}>
                     <Samples file={file} />
