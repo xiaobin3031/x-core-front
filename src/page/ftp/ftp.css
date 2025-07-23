@@ -174,10 +174,14 @@
 			justify-content: space-between;
 			box-sizing: border-box;
 
-			& > .name {
+			& .name {
 				width: calc(100% - 20px);
 				overflow: hidden;
 				text-overflow: ellipsis;
+
+				& > label {
+					display: flex;
+				}
 			}
 
 			& > .icon {

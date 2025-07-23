@@ -9,7 +9,7 @@ export default function VideoPlayer({fileToken, closePlayer}) {
   let src = `${import.meta.env.VITE_API_BASE}:${import.meta.env.VITE_API_PORT}/media/play?fileToken=${fileToken}`
 
   return (
-    <div className={"video-player"} ref={player} style={{maxWidth: '50%', maxHeight: '50%'}}>
+    <div className={"video-player"} ref={player} style={{maxWidth: '100%', maxHeight: '100%'}}>
       <div className={"close-btn"}>
         <span onClick={closePlayer}><DeleteIcon fill={"#000000"}/></span>
       </div>

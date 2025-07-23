@@ -3,11 +3,14 @@ import ajax from "../util/ajax.js";
 import {useEffect, useRef, useState} from "react";
 import {
   BackIcon,
+  CheckAllIcon,
   FileAddIcon,
   FoldAddIcon,
   FoldIcon,
   MoreIcon,
-  RefreshIcon
+  MoveIcon,
+  RefreshIcon,
+  TrashIcon
 } from '../components/Icon.jsx';
 import Input from '../components/Input.jsx'
 import {onEnter} from '../util/key.js'
@@ -26,6 +29,8 @@ export default function Ftp() {
   const [modalFlags, setModalFlags] = useState({})
   const [clickedFile, setClickedFile] = useState(null)
 
+  const selectFiles = useRef([])
+
   const newFileInputRef = useRef(null), ftpContainerRef = useRef(null)
 
   useEffect(() => {
@@ -36,6 +41,12 @@ export default function Ftp() {
   const freshRootDirs = async () => {
     let res = await ajax.get("/ftp/listDirs")
     freshDirs(res)
+    unSelectFile()
+  }
+
+  const unSelectFile = () => {
+    selectFiles.current = []
+    Array.from(document.querySelectorAll('input[name="file-checkbox"]')).forEach($a => $a.checked = false)
   }
 
   const backTo = async (e) => {
@@ -70,6 +81,7 @@ export default function Ftp() {
       // fold
       let res = await ajax.post('/ftp/changeDir', {id: item.id})
       freshDirs(res)
+      unSelectFile()
     }
   }
 
@@ -189,7 +201,7 @@ export default function Ftp() {
     )
   }
 
-  function MoveDirModal({file}) {
+  function MoveDirModal({sfiles}) {
 
     const foldByParentId = useRef({})
     const selectDirId = useRef(-1)
@@ -209,14 +221,17 @@ export default function Ftp() {
     const close = (e) => {
       !!e && e.stopPropagation()
       modalFlags.move = false
+      modalFlags.moveBatch = false
       setModalFlags({...modalFlags})
     }
 
     const moveFile = async (e) => {
       e.stopPropagation()
-      if (file.foldId === selectDirId.current) return
-      let res = await ajax.post('/ftp/moveFile', {fileFlag: file.fileFlag, id: file.id, foldId: selectDirId.current})
+      const toMoveFiles = sfiles.filter(a => a.foldId !== selectDirId.current)
+      if(toMoveFiles.length === 0) return
+      let res = await ajax.post('/ftp/moveFile', {files: toMoveFiles, foldId: selectDirId.current})
       freshDirs(res)
+      close()
     }
 
     const showChildFold = async (e, index, dir) => {
@@ -292,6 +307,44 @@ export default function Ftp() {
     )
   }
 
+  const fileCheck = (e, file) => {
+    if(e.target.checked) {
+      selectFiles.current.push({id: file.id, fileFlag: file.fileFlag, name: file.name})
+    }else {
+      selectFiles.current = selectFiles.current.filter(a => a.id !== file.id)
+    }
+  }
+
+  const batchMoveFile = (e) => {
+    e.stopPropagation()
+    if(selectFiles.current.length === 0) return
+
+    modalFlags.moveBatch = true
+    setModalFlags({...modalFlags})
+  }
+
+  const checkAllFile = (e) => {
+    e.stopPropagation()
+    Array.from(document.querySelectorAll('input[name="file-checkbox"]')).forEach($a => $a.checked = true)
+    selectFiles.current = files.map(a => {
+      return {
+        id: a.id,
+        fileFlag: a.fileFlag
+      }
+    })
+  }
+
+  const removeSelectFiles = async (e) => {
+    e.stopPropagation()
+    if(selectFiles.current.length === 0) return
+
+    if(window.confirm('是否删除这些文件/文件夹')) {
+      let res = await ajax.post('/ftp/removeFile', {files: selectFiles.current})
+      unSelectFile()
+      freshDirs(res)
+    }
+  }
+
   return (
     <>
       <div className='ftp' onClick={closeAll}>
@@ -322,6 +375,9 @@ export default function Ftp() {
               }
             </span>
             <input type="file" hidden={true} ref={newFileInputRef} onChange={fileChange}/>
+            <span onClick={e => batchMoveFile(e)}> <MoveIcon fill="green"/> </span>
+            <span onClick={e => checkAllFile(e)}> <CheckAllIcon /> </span>
+            <span onClick={e => removeSelectFiles(e)}> <TrashIcon /> </span>
           </div>
         </div>
         <div className='ftp-container' ref={ftpContainerRef}>
@@ -342,7 +398,10 @@ export default function Ftp() {
                 <div className={`ftp-item ${type}`} key={`ftp-${type}-${file.id}`}>
                   <div className='info'>
                     <div className='name'>
-                      <ScrollXText text={file.name} />
+                      <label>
+                        <input name="file-checkbox" type="checkbox" onClick={e => fileCheck(e, file)}/>
+                        <ScrollXText text={file.name} />
+                      </label>
                     </div>
                     <span className='icon' onClick={(e) => moreAction(e, file)}><MoreIcon/></span>
                   </div>
@@ -358,7 +417,8 @@ export default function Ftp() {
         {!!playVideo && <VideoPlayer fileToken={fileTokens['video']} closePlayer={() => setPlayVideo(false)}/>}
       </div>
       {!!modalFlags.rename && <RenameModal file={clickedFile}/>}
-      {!!modalFlags.move && <MoveDirModal file={clickedFile} /> }
+      {!!modalFlags.move && <MoveDirModal sfiles={[clickedFile]} /> }
+      {!!modalFlags.moveBatch && <MoveDirModal sfiles={selectFiles.current} /> }
     </>
   )
 }

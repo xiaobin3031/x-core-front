@@ -6,7 +6,7 @@ export default function ScrollXText({text}) {
 
   useEffect(() => {
     const observer = new ResizeObserver(() => {
-      console.log(text, $textView.current.scrollWidth, $textView.current.clientWidth)
+      // console.log(text, $textView.current.scrollWidth, $textView.current.clientWidth)
     })
     observer.observe($textView.current)
   }, []);
