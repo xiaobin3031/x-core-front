@@ -395,7 +395,7 @@ export default function Ftp() {
               }
               const type = !!file.fileFlag ? 'file' : 'fold'
               return (
-                <div className={`ftp-item ${type}`} key={`ftp-${type}-${file.id}`}>
+                <div className={`ftp-item ${type}`} key={`ftp-${type}-${file.name}`}>
                   <div className='info'>
                     <div className='name'>
                       <label>
