@@ -17,6 +17,7 @@ import {onEnter} from '../util/key.js'
 import VideoPlayer from './VideoPlayer.jsx'
 import Modal from "../components/Modal.jsx";
 import ScrollXText from "../components/ScrollXText.jsx";
+import ImagePreview from "./ImagePreview.jsx";
 
 export default function Ftp() {
 
@@ -25,6 +26,7 @@ export default function Ftp() {
   const [uploadProgress, setUploadProgress] = useState({})
   const [addFoldFlag, setAddFoldFlag] = useState(false)
   const [playVideo, setPlayVideo] = useState(false)
+  const [showImage, setShowImage] = useState(false)
   const [fileTokens, setFileTokens] = useState({})
   const [modalFlags, setModalFlags] = useState({})
   const [clickedFile, setClickedFile] = useState(null)
@@ -69,6 +71,9 @@ export default function Ftp() {
   const isVideo = (file) => {
     return !!file.fileType && file.fileType.indexOf("video/") === 0;
   }
+  const isImage = (file) => {
+    return !!file.fileType && file.fileType.indexOf("image/") === 0;
+  }
 
   const itemClick = async (item) => {
     if (!!item.fileFlag) {
@@ -76,6 +81,9 @@ export default function Ftp() {
         fileTokens.video = await ajax.post('/ftp/prepareFile', {id: item.id, prepareForPlay: true})
         setFileTokens({...fileTokens})
         setPlayVideo(true)
+      }else if(isImage(item)) {
+        setClickedFile( item)
+        setShowImage(true)
       }
     } else {
       // fold
@@ -415,6 +423,7 @@ export default function Ftp() {
           }
         </div>
         {!!playVideo && <VideoPlayer fileToken={fileTokens['video']} closePlayer={() => setPlayVideo(false)}/>}
+        {!!showImage && <ImagePreview file={clickedFile} onClose={() => setShowImage(false)}/>}
       </div>
       {!!modalFlags.rename && <RenameModal file={clickedFile}/>}
       {!!modalFlags.move && <MoveDirModal sfiles={[clickedFile]} /> }
