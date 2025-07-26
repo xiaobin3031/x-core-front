@@ -353,6 +353,31 @@ export default function Ftp() {
     }
   }
 
+  const handleDragStart = (e, index) => {
+    e.dataTransfer.setData("dragIndex", index);
+  };
+
+  const handleDrop = async (e, dropIndex) => {
+    const dragIndex = parseInt(e.dataTransfer.getData("dragIndex"), 10);
+    if (dragIndex === dropIndex) return;
+
+    const updatedFiles = [...files];
+    const [movedItem] = updatedFiles.splice(dragIndex, 1);
+    updatedFiles.splice(dropIndex, 0, movedItem);
+
+    // 重新设置 sort 字段
+    updatedFiles.forEach((file, idx) => {
+      file.sort = idx;
+    });
+
+    let res = await ajax.post('/ftp/sortFiles', updatedFiles.map((a, index) => ({id: a.id, fileFlag: a.fileFlag, sort: index})))
+    freshDirs(res)
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault(); // 必须阻止默认，才能触发 drop
+  };
+
   return (
     <>
       <div className='ftp' onClick={closeAll}>
@@ -390,7 +415,7 @@ export default function Ftp() {
         </div>
         <div className='ftp-container' ref={ftpContainerRef}>
           {
-            files.map(file => {
+            files.map((file, index) => {
               if (!!file.uploading) {
                 return (
                   <div className={`ftp-item file uploading`} key={`ftp-file-${file.name}`}>
@@ -403,7 +428,12 @@ export default function Ftp() {
               }
               const type = !!file.fileFlag ? 'file' : 'fold'
               return (
-                <div className={`ftp-item ${type}`} key={`ftp-${type}-${file.name}`}>
+                <div
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, index)}
+                  onDrop={(e) => handleDrop(e, index)}
+                  onDragOver={handleDragOver}
+                  className={`ftp-item ${type}`} key={`ftp-${type}-${file.name}`}>
                   <div className='info'>
                     <div className='name'>
                       <label>
