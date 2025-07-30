@@ -10,7 +10,7 @@ import {
   MoreIcon,
   MoveIcon,
   RefreshIcon,
-  TrashIcon
+  TrashIcon, UnZipIcon
 } from '../components/Icon.jsx';
 import Input from '../components/Input.jsx'
 import {onEnter} from '../util/key.js'
@@ -32,6 +32,7 @@ export default function Ftp() {
   const [clickedFile, setClickedFile] = useState(null)
 
   const selectFiles = useRef([])
+  const allFiles = useRef([])
 
   const newFileInputRef = useRef(null), ftpContainerRef = useRef(null)
 
@@ -66,6 +67,8 @@ export default function Ftp() {
     setFiles(data.files)
     headInfo.path = data.path
     setHeadInfo({...headInfo})
+    allFiles.current = data.files
+    document.querySelector('.files-searcher input').value = ''
   }
 
   const isVideo = (file) => {
@@ -353,6 +356,13 @@ export default function Ftp() {
     }
   }
 
+  const unzipFiles = (e) => {
+    e.stopPropagation()
+    if(selectFiles.current.length === 0) return
+
+    ajax.post('/ftp/unzipFile', selectFiles.current.map(a => a.id)).then(() => {})
+  }
+
   const handleDragStart = (e, index) => {
     e.dataTransfer.setData("dragIndex", index);
   };
@@ -377,6 +387,18 @@ export default function Ftp() {
   const handleDragOver = (e) => {
     e.preventDefault(); // 必须阻止默认，才能触发 drop
   };
+
+  const searchFiles = (e) => {
+    e.stopPropagation()
+    let value = e.target.value
+    let list
+    if(!!value) {
+      list = allFiles.current.filter(a => a.name.indexOf(value) >= 0)
+    }else{
+      list = allFiles.current
+    }
+    setFiles([...list])
+  }
 
   return (
     <>
@@ -411,6 +433,10 @@ export default function Ftp() {
             <span onClick={e => batchMoveFile(e)}> <MoveIcon fill="green"/> </span>
             <span onClick={e => checkAllFile(e)}> <CheckAllIcon /> </span>
             <span onClick={e => removeSelectFiles(e)}> <TrashIcon /> </span>
+            <span onClick={e => unzipFiles(e)}> <UnZipIcon /></span>
+            <span className='files-searcher'>
+              <input name='search-files' onKeyDown={e => onEnter(e, searchFiles)}/>
+            </span>
           </div>
         </div>
         <div className='ftp-container' ref={ftpContainerRef}>
