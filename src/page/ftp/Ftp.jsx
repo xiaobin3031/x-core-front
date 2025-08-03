@@ -35,7 +35,7 @@ export default function Ftp() {
   const selectFiles = useRef([])
   const allFiles = useRef([])
 
-  const newFileInputRef = useRef(null), ftpContainerRef = useRef(null)
+  const ftpContainerRef = useRef(null)
 
   useEffect(() => {
     freshRootDirs().then(() => {
@@ -78,6 +78,9 @@ export default function Ftp() {
   const isImage = (file) => {
     return !!file.fileType && file.fileType.indexOf("image/") === 0;
   }
+  const isPdf = (file) => {
+    return !!file.fileType && file.fileType === 'application/pdf';
+  }
 
   const itemClick = async (item) => {
     if (!!item.fileFlag) {
@@ -88,6 +91,8 @@ export default function Ftp() {
       }else if(isImage(item)) {
         setClickedFile( item)
         setShowImage(true)
+      }else if(isPdf(item)) {
+
       }
     } else {
       // fold
@@ -131,12 +136,6 @@ export default function Ftp() {
       setAddFoldFlag(false)
       e.target.value = ''
     }
-  }
-
-
-  const goToDir = async (id) => {
-    let res = await ajax.post('/ftp/changeDir', {id: id, direction: true})
-    freshDirs(res)
   }
 
   const moreAction = (e, item) => {
@@ -450,7 +449,10 @@ export default function Ftp() {
               </div>
               <div className={'progress'} ref={$progress}>
                 <div className={'progress-bg'}></div>
-                <div className={'progress-text'}>0%</div>
+                <div className={'progress-text'}>
+                  <span className='current-chunk'></span>
+                  <span className='total-chunk'></span>
+                </div>
               </div>
             </div>
             <div className={'fold-input'}>
@@ -466,22 +468,9 @@ export default function Ftp() {
     <>
       <div className='ftp' onClick={closeAll}>
         <div className='ftp-head'>
-          <div className="path">
-            {
-              !!headInfo.path && headInfo.path.length > 0 &&
-              headInfo.path.filter(a => !!a).map((p, i) => {
-                if (i === headInfo.path.length - 1) {
-                  return <span key={`head-path-${p}`}>{p}</span>
-                } else {
-                  return <a onClick={goToDir} key={`head-path-${p}`}>{p}</a>
-                }
-              })
-            }
-          </div>
           <div className="btns">
             <span onClick={backTo}><BackIcon/></span>
             <span onClick={freshRootDirs}><RefreshIcon fill='green'/></span>
-            {/*<span onClick={() => newFileInputRef.current.click()}><FileAddIcon fill='green'/></span>*/}
             <span onClick={() => {modalFlags.fileAdd = true;setModalFlags({...modalFlags})}}><FileAddIcon fill='green'/></span>
             <span onClick={() => setAddFoldFlag(true)} className="fold-add">
               {!addFoldFlag && <FoldAddIcon fill='green'/>}
@@ -492,7 +481,6 @@ export default function Ftp() {
                 </div>
               }
             </span>
-            <input type="file" hidden={true} ref={newFileInputRef} onChange={fileChange}/>
             <span onClick={e => batchMoveFile(e)}> <MoveIcon fill="green"/> </span>
             <span onClick={e => checkAllFile(e)}> <CheckAllIcon /> </span>
             <span onClick={e => removeSelectFiles(e)}> <TrashIcon /> </span>
@@ -500,6 +488,11 @@ export default function Ftp() {
             <span className='files-searcher'>
               <input name='search-files' onKeyDown={e => onEnter(e, searchFiles)}/>
             </span>
+          </div>
+          <div className="path">
+            {
+              !!headInfo.path && headInfo.path.length > 0 && headInfo.path[headInfo.path.length - 1]
+            }
           </div>
         </div>
         <div className='ftp-container' ref={ftpContainerRef}>

@@ -29,6 +29,7 @@ export class FileUpload {
     let {currentChunk, uploadId} = await ajax.post('/file-upload/init', {totalChunks, fileName: this.#file.name, totalSize: this.#file.size})
 
     const $el = this.#$dom.getElementsByClassName('progress-bg')[0]
+    $el.nextSibling.getElementsByClassName('total-chunk')[0].innerText = totalChunks
     while(currentChunk <= totalChunks) {
       if (this.#cancel) return 2;
       const start = currentChunk * CHUNK_SIZE;
@@ -52,8 +53,8 @@ export class FileUpload {
       requestAnimationFrame(() => {
         $el.style.width = `${percent}%`
       })
-      $el.nextSibling.innerText = `上传中...${percent}%`
       currentChunk++;
+      $el.nextSibling.getElementsByClassName('current-chunk')[0].innerText = currentChunk
     }
     await ajax.post('/file-upload/finish', {fileId: uploadId})
     $el.nextSibling.innerText = '上传完成'

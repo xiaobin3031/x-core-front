@@ -8,37 +8,18 @@
 		height: var(--ftp-head-height);
 		padding-left: 30px;
 		border-bottom: 1px solid #ccc;
-		
+
 		display: flex;
 		align-items: center;
 
-		& .path > a {
-			cursor: pointer;
-			color: blue;
-
-			&:first-child {
-				font-weight: bold;
-				
-				&:after {
-					content: ':';
-					font-weight: bold;
-					margin-left: 2px;
-					margin-right: 10px;
-					color: black;
-				}
-			}
-
-			&:not(:first-child):after {
-				content: '/';
-				padding-left: 5px;
-				padding-right: 5px;
-				color: black;
-			}
+		& .path {
+			max-width: 500px;
+			overflow-x: hidden;
 		}
 
 		& .btns {
 			margin-left: 30px;
-			height: 50%;
+			height: 70%;
 
 			display: flex;
 			align-items: center;
