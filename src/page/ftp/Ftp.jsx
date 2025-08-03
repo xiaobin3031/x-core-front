@@ -18,6 +18,7 @@ import VideoPlayer from './VideoPlayer.jsx'
 import Modal from "../components/Modal.jsx";
 import ScrollXText from "../components/ScrollXText.jsx";
 import ImagePreview from "./ImagePreview.jsx";
+import {FileUpload} from "../util/fileUpload.js";
 
 export default function Ftp() {
 
@@ -400,6 +401,67 @@ export default function Ftp() {
     setFiles([...list])
   }
 
+  function AddFileModal() {
+
+    const newFoldInputRef = useRef(null)
+    const newFileInputRef = useRef(null)
+    const $progress = useRef(null)
+
+    const changeTab = (e) => {
+      if(e.target.value === '1') {
+        newFileInputRef.current.closest('.file-input').style.display = 'block'
+        newFoldInputRef.current.closest('.fold-input').style.display = 'none'
+      }else if(e.target.value === '2') {
+        newFileInputRef.current.closest('.file-input').style.display = 'none'
+        newFoldInputRef.current.closest('.fold-input').style.display = 'block'
+      }
+    }
+
+    const uploadFile = async (e) => {
+      e.stopPropagation()
+      let file = newFileInputRef.current.files[0]
+      let fileUpload = new FileUpload(file, $progress.current)
+      let res = await fileUpload.upload()
+      if(res !== 0) {
+        alert('上传失败')
+        return
+      }
+      modalFlags.fileAdd = false
+      setModalFlags({...modalFlags})
+    }
+
+    const close = (e) => {
+      !!e && e.stopPropagation()
+      modalFlags.fileAdd = false
+      setModalFlags({...modalFlags})
+    }
+
+    return (
+      <Modal title={'添加文件/文件夹'} onClose={close} onOk={uploadFile}>
+        <div className={'add-file-modal'}>
+          <div className='radios'>
+            <label><input type={'radio'} name={'add-file-radio'} value="1" onChange={changeTab}/>新建文件</label>
+            <label><input type={'radio'} name={'add-file-radio'} value="2" onChange={changeTab}/>新建文件夹</label>
+          </div>
+          <div className={'file-input-container'}>
+            <div className={'file-input'}>
+              <div>
+                <input ref={newFileInputRef} type="file"/>
+              </div>
+              <div className={'progress'} ref={$progress}>
+                <div className={'progress-bg'}></div>
+                <div className={'progress-text'}>0%</div>
+              </div>
+            </div>
+            <div className={'fold-input'}>
+              <input type={'text'} ref={newFoldInputRef} placeholder={'输入文件夹名称'}/>
+            </div>
+          </div>
+        </div>
+      </Modal>
+    )
+  }
+
   return (
     <>
       <div className='ftp' onClick={closeAll}>
@@ -419,7 +481,8 @@ export default function Ftp() {
           <div className="btns">
             <span onClick={backTo}><BackIcon/></span>
             <span onClick={freshRootDirs}><RefreshIcon fill='green'/></span>
-            <span onClick={() => newFileInputRef.current.click()}><FileAddIcon fill='green'/></span>
+            {/*<span onClick={() => newFileInputRef.current.click()}><FileAddIcon fill='green'/></span>*/}
+            <span onClick={() => {modalFlags.fileAdd = true;setModalFlags({...modalFlags})}}><FileAddIcon fill='green'/></span>
             <span onClick={() => setAddFoldFlag(true)} className="fold-add">
               {!addFoldFlag && <FoldAddIcon fill='green'/>}
               {!!addFoldFlag &&
@@ -484,6 +547,7 @@ export default function Ftp() {
       {!!modalFlags.rename && <RenameModal file={clickedFile}/>}
       {!!modalFlags.move && <MoveDirModal sfiles={[clickedFile]} /> }
       {!!modalFlags.moveBatch && <MoveDirModal sfiles={selectFiles.current} /> }
+      {!!modalFlags.fileAdd && <AddFileModal/>}
     </>
   )
 }
