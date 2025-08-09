@@ -6,7 +6,7 @@ import {
   CheckAllIcon,
   FileAddIcon,
   FoldAddIcon,
-  FoldIcon,
+  FoldIcon, ModifyIcon,
   MoreIcon,
   MoveIcon,
   RefreshIcon,
@@ -24,7 +24,6 @@ export default function Ftp() {
 
   const [files, setFiles] = useState([])
   const [headInfo, setHeadInfo] = useState({})
-  const [uploadProgress, setUploadProgress] = useState({})
   const [addFoldFlag, setAddFoldFlag] = useState(false)
   const [playVideo, setPlayVideo] = useState(false)
   const [showImage, setShowImage] = useState(false)
@@ -57,6 +56,7 @@ export default function Ftp() {
     e.stopPropagation()
     let res = await ajax.get("/ftp/goBack")
     freshDirs(res)
+    unSelectFile()
   }
 
   const freshDirs = (data) => {
@@ -92,36 +92,14 @@ export default function Ftp() {
         setClickedFile( item)
         setShowImage(true)
       }else if(isPdf(item)) {
-
+        let res = await ajax.post('/ftp/prepareFile', {id: item.id, prepareForPlay: true})
+        window.open(`${ajax.getBaseUrl()}/ftp/previewPdf/${res}`)
       }
     } else {
       // fold
       let res = await ajax.post('/ftp/changeDir', {id: item.id})
       freshDirs(res)
       unSelectFile()
-    }
-  }
-
-  const fileChange = async (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      files.unshift({
-        name: file.name,
-        fileFlag: true,
-        uploading: true
-      })
-      uploadProgress[file.name] = {
-        size: file.size,
-        progress: 0
-      }
-      setUploadProgress({...uploadProgress})
-      setTimeout(async () => {
-        let res = await ajax.uploadFile('/ftp/uploadFile', file, ({percent}) => {
-          uploadProgress[file.name].progress = percent
-          setUploadProgress({...uploadProgress})
-        })
-        if (!!res) freshDirs(res);
-      }, 100)
     }
   }
 
@@ -300,7 +278,7 @@ export default function Ftp() {
     const renameFile = async (e) => {
       e.stopPropagation()
       if (!name) return;
-      let res = await ajax.post('/ftp/rename', {fileFlag: file.fileFlag, id: file.id, newName: name})
+      let res = await ajax.post('/ftp/rename', [{fileFlag: file.fileFlag, id: file.id, newName: name}])
       freshDirs(res)
       close();
     }
@@ -336,13 +314,19 @@ export default function Ftp() {
 
   const checkAllFile = (e) => {
     e.stopPropagation()
-    Array.from(document.querySelectorAll('input[name="file-checkbox"]')).forEach($a => $a.checked = true)
-    selectFiles.current = files.map(a => {
-      return {
-        id: a.id,
-        fileFlag: a.fileFlag
-      }
-    })
+    const $doms = Array.from(document.querySelectorAll('input[name="file-checkbox"]'))
+    if($doms.some($a => !$a.checked)) {
+      $doms.forEach($a => $a.checked = true)
+      selectFiles.current = files.map(a => {
+        return {
+          id: a.id,
+          fileFlag: a.fileFlag,
+          name: a.name
+        }
+      })
+    }else{
+      unSelectFile()
+    }
   }
 
   const removeSelectFiles = async (e) => {
@@ -360,7 +344,15 @@ export default function Ftp() {
     e.stopPropagation()
     if(selectFiles.current.length === 0) return
 
-    ajax.post('/ftp/unzipFile', selectFiles.current.map(a => a.id)).then(() => {})
+    if(window.confirm('是否解压所选文件？')) {
+      ajax.post('/ftp/unzipFile', selectFiles.current.map(a => a.id)).then(() => {})
+    }
+  }
+
+  const renameFiles = (e) => {
+    e.stopPropagation()
+    modalFlags.renameAll = true
+    setModalFlags({...modalFlags})
   }
 
   const handleDragStart = (e, index) => {
@@ -450,14 +442,98 @@ export default function Ftp() {
               <div className={'progress'} ref={$progress}>
                 <div className={'progress-bg'}></div>
                 <div className={'progress-text'}>
-                  <span className='current-chunk'></span>
-                  <span className='total-chunk'></span>
+                  <span className='current-chunk'>0</span>
+                  <span style={{"marginLeft": '5px', "marginRight": '5px'}}>/</span>
+                  <span className='total-chunk'>0</span>
                 </div>
               </div>
             </div>
             <div className={'fold-input'}>
               <input type={'text'} ref={newFoldInputRef} placeholder={'输入文件夹名称'}/>
             </div>
+          </div>
+        </div>
+      </Modal>
+    )
+  }
+
+  function RenameAllModal({sfiles}) {
+    const [list, setList] = useState(sfiles.map(a => {
+      return {
+        id: a.id,
+        fileFlag: a.fileFlag,
+        name: a.name,
+        newName: a.name
+      }
+    }))
+
+    const $find = useRef(null), $replace = useRef(null)
+
+    const close = (e) => {
+      !!e && e.stopPropagation()
+      modalFlags.renameAll = false
+      setModalFlags({...modalFlags})
+    }
+
+    const renameAll = async (e) => {
+      e.stopPropagation()
+      let updateList = list.filter(a => a.newName !== a.name).map(a => {
+        return {
+          id: a.id,
+          fileFlag: a.fileFlag,
+          newName: a.newName
+        }
+      })
+      if(updateList.length > 0) {
+        await ajax.post('/ftp/rename', updateList)
+      }
+      close()
+      await freshRootDirs()
+    }
+
+    const replace = () => {
+      const findTxt = $find.current.value, replaceTxt = $replace.current.value
+      if(!findTxt || !replaceTxt) return
+      let reg = new RegExp(findTxt)
+      list.filter(a => reg.test(a.name)).forEach(a => a.newName = a.name.replace(reg, replaceTxt))
+      setList([...list])
+    }
+
+    const reduction = () => {
+      list.forEach(a => a.newName = a.name)
+      setList([...list])
+    }
+
+    return (
+      <Modal title={'批量重命名'} onOk={renameAll} onClose={close}>
+        <div className={'rename-all-container'}>
+          <div className={'replace-regexp'}>
+            <div className={'find'}>
+              <input ref={$find} placeholder='请输入正则表达式'/>
+              <button type={'button'} onClick={reduction}>Reduction</button>
+            </div>
+            <div className={'replace'}>
+              <input ref={$replace} placeholder='请输入正则表达式'/>
+              <button type={'button'} onClick={replace}>Replace</button>
+            </div>
+          </div>
+          <div className={'replace-text'}>
+            <table>
+              <thead>
+              <tr>
+                <th>文件名称</th>
+                <th>新文件名称</th>
+              </tr>
+              </thead>
+              <tbody>
+              {list.map((a, index) => (
+                <tr key={`rename-file-${a.id}-${index}`}>
+                  <td>{a.name}</td>
+                  <td><textarea value={a.newName} onChange={e => {a.newName = e.target.value; setList([...list])}}></textarea></td>
+                </tr>
+              ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </Modal>
@@ -485,6 +561,7 @@ export default function Ftp() {
             <span onClick={e => checkAllFile(e)}> <CheckAllIcon /> </span>
             <span onClick={e => removeSelectFiles(e)}> <TrashIcon /> </span>
             <span onClick={e => unzipFiles(e)}> <UnZipIcon /></span>
+            <span onClick={e => renameFiles(e)}> <ModifyIcon /></span>
             <span className='files-searcher'>
               <input name='search-files' onKeyDown={e => onEnter(e, searchFiles)}/>
             </span>
@@ -498,16 +575,6 @@ export default function Ftp() {
         <div className='ftp-container' ref={ftpContainerRef}>
           {
             files.map((file, index) => {
-              if (!!file.uploading) {
-                return (
-                  <div className={`ftp-item file uploading`} key={`ftp-file-${file.name}`}>
-                    <div className='info' title={file.name}>
-                      {file.name}
-                    </div>
-                    <div className="sample"><Progress percent={uploadProgress[file.name]?.percent || 0}/></div>
-                  </div>
-                )
-              }
               const type = !!file.fileFlag ? 'file' : 'fold'
               return (
                 <div
@@ -515,7 +582,7 @@ export default function Ftp() {
                   onDragStart={(e) => handleDragStart(e, index)}
                   onDrop={(e) => handleDrop(e, index)}
                   onDragOver={handleDragOver}
-                  className={`ftp-item ${type}`} key={`ftp-${type}-${file.name}`}>
+                  className={`ftp-item ${type}`} key={`ftp-${index}-${type}-${file.name}`}>
                   <div className='info'>
                     <div className='name'>
                       <label>
@@ -541,17 +608,7 @@ export default function Ftp() {
       {!!modalFlags.move && <MoveDirModal sfiles={[clickedFile]} /> }
       {!!modalFlags.moveBatch && <MoveDirModal sfiles={selectFiles.current} /> }
       {!!modalFlags.fileAdd && <AddFileModal/>}
+      {!!modalFlags.renameAll && <RenameAllModal sfiles={selectFiles.current || files}/>}
     </>
-  )
-}
-
-function Progress({percent}) {
-
-  return (
-    <div className="file-upload-progress" style={{'--progress': `${percent}`}}>
-      <div className='overlay'>
-        <div className='progress-bg' data-left={`${100 - percent}%`}></div>
-      </div>
-    </div>
   )
 }

@@ -367,3 +367,39 @@
 		}
 	}
 }
+
+.rename-all-container {
+	min-width: 1000px;
+	max-width: 1500px;
+	max-height: 500px;
+	overflow-y: scroll;
+
+	& .find, & .replace {
+		display: grid;
+		grid-template-columns: 1fr 100px;
+		margin-bottom: 10px;
+
+		& input {
+			height: 30px;
+		}
+	}
+
+	& table {
+		width: 100%;
+		border-collapse: collapse;
+		border-spacing: 0;
+
+		& textarea {
+			width: 100%;
+			box-sizing: border-box;
+		}
+
+		& th {
+			width: 50%;
+		}
+
+		& th, & td {
+			border: 1px solid #ccc;
+		}
+	}
+}

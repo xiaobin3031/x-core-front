@@ -21,27 +21,6 @@ function downloadFile(path) {
   window.open(baseUrl + path)
 }
 
-function mediaPlay(path, data= {}, options={}) {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    // 可选：带上 token 鉴权
-    options = {...defaultAjax6Option, ...options}
-    xhr.open(options.type, path, true);
-    xhr.responseType = "blob"; // 关键：处理媒体文件
-    Object.keys(options.header || {}).forEach(k => xhr.setRequestHeader(k, options.header[k]));
-    setAuthorization(xhr)
-
-    xhr.onload = function () {
-      if (xhr.status === 200 || xhr.status === 206) {
-        resolve(xhr.response)
-      } else {
-        reject()
-      }
-    };
-    xhr.send(JSON.stringify(data));
-  });
-}
-
 function uploadFile(path, file, progressCb, data = {}, options = {}) {
   return new Promise((resolve, reject) => {
     options = {...defaultAjax6Option, ...options}
@@ -135,39 +114,16 @@ function ajax6(path, data = {}, options = {}) {
   });
 }
 
-function ajax6File(path, fileData = {}) {
-  return new Promise((resolve, reject) => {
-    if (Object.keys(fileData).length === 0) {
-      reject({});
-    } else {
-      const url = `${baseUrl}${path}`;
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", url, true);
-      const formData = new FormData();
-      Object.keys(fileData).forEach(k => formData.append(k, fileData[k]));
-      // xhr.setRequestHeader("Content-Type", "multipart/form-data");
-      xhr.onload = () => {
-        if (xhr.status === 200) {
-          resolve(JSON.parse(xhr.response || '{}'));
-        } else {
-          reject(JSON.parse(xhr.response || '{}'));
-        }
-      }
-      xhr.send(formData);
-    }
-  })
-}
-
 function formatParams(data = {}) {
   return Object.keys(data).map(k => `${encodeURIComponent(k)}=${encodeURIComponent(JSON.stringify(data[k]))}`).join('&');
 }
 
 export default {
-  ajax6,
   get,
   post,
-  ajax6File,
   uploadFile,
   downloadFile,
-  mediaPlay
+  getBaseUrl: () => {
+    return `${baseUrl}`
+  }
 }

@@ -23,6 +23,11 @@ export default function Button({children, loading, ...props}) {
     }
   }
 
+  const click = props.onClick
+  props.onClick = (e) => {
+    click(e)
+  }
+
   delete props.className
   return (
     <button className={cls.join(' ')}
