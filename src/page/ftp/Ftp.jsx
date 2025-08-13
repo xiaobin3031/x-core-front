@@ -1,6 +1,6 @@
 import './ftp.css'
 import ajax from "../util/ajax.js";
-import {useEffect, useRef, useState} from "react";
+import {use, useEffect, useRef, useState} from "react";
 import {
   BackIcon,
   CheckAllIcon,
@@ -9,7 +9,7 @@ import {
   FoldIcon, ModifyIcon,
   MoreIcon,
   MoveIcon,
-  RefreshIcon,
+  RefreshIcon, ShareIcon,
   TrashIcon, UnZipIcon
 } from '../components/Icon.jsx';
 import Input from '../components/Input.jsx'
@@ -351,6 +351,8 @@ export default function Ftp() {
 
   const renameFiles = (e) => {
     e.stopPropagation()
+    if(selectFiles.current.length === 0) return
+
     modalFlags.renameAll = true
     setModalFlags({...modalFlags})
   }
@@ -396,29 +398,54 @@ export default function Ftp() {
 
     const newFoldInputRef = useRef(null)
     const newFileInputRef = useRef(null)
+    const newDownloadInputRef = useRef(null)
     const $progress = useRef(null)
+    const selectedTab = useRef('0')
+    const childCls = ['file-input', 'fold-input', 'download-input']
 
     const changeTab = (e) => {
-      if(e.target.value === '1') {
-        newFileInputRef.current.closest('.file-input').style.display = 'block'
-        newFoldInputRef.current.closest('.fold-input').style.display = 'none'
-      }else if(e.target.value === '2') {
-        newFileInputRef.current.closest('.file-input').style.display = 'none'
-        newFoldInputRef.current.closest('.fold-input').style.display = 'block'
+      let showCls
+      selectedTab.current = e.target.value
+      if(selectedTab.current === '1') {
+        showCls = 'file-input'
+      }else if(selectedTab.current === '2') {
+        showCls = 'fold-input'
+      }else if(selectedTab.current === '3') {
+        showCls = 'download-input'
+      }
+      if(!!showCls) {
+        const $dom = newFileInputRef.current.closest('.file-input-container')
+        childCls.filter(a => a !== showCls).forEach(a => $dom.getElementsByClassName(a)[0].style.display = 'none')
+        $dom.getElementsByClassName(showCls)[0].style.display = 'block'
       }
     }
 
     const uploadFile = async (e) => {
       e.stopPropagation()
-      let file = newFileInputRef.current.files[0]
-      let fileUpload = new FileUpload(file, $progress.current)
-      let res = await fileUpload.upload()
-      if(res !== 0) {
-        alert('上传失败')
-        return
+      switch(selectedTab.current) {
+        case '1': {  // add file
+          let file = newFileInputRef.current.files[0]
+          let fileUpload = new FileUpload(file, $progress.current)
+          let res = await fileUpload.upload()
+          if(res !== 0) {
+            alert('上传失败')
+            return
+          }
+          close()
+          break
+        }
+        case '2': { // add fold
+
+          break
+        }
+        case '3': { // add download
+          const magnet = newDownloadInputRef.current.value
+          if(!magnet) return
+          await ajax.post('/ftp/addDownload', {magnet})
+          await freshRootDirs()
+          break
+        }
       }
-      modalFlags.fileAdd = false
-      setModalFlags({...modalFlags})
     }
 
     const close = (e) => {
@@ -433,6 +460,7 @@ export default function Ftp() {
           <div className='radios'>
             <label><input type={'radio'} name={'add-file-radio'} value="1" onChange={changeTab}/>新建文件</label>
             <label><input type={'radio'} name={'add-file-radio'} value="2" onChange={changeTab}/>新建文件夹</label>
+            <label><input type={'radio'} name={'add-file-radio'} value="3" onChange={changeTab}/>新建下载任务</label>
           </div>
           <div className={'file-input-container'}>
             <div className={'file-input'}>
@@ -450,6 +478,9 @@ export default function Ftp() {
             </div>
             <div className={'fold-input'}>
               <input type={'text'} ref={newFoldInputRef} placeholder={'输入文件夹名称'}/>
+            </div>
+            <div className={'download-input'}>
+              <textarea ref={newDownloadInputRef} placeholder={'输入下载的磁力链接'}></textarea>
             </div>
           </div>
         </div>
