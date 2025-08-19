@@ -4,6 +4,7 @@ import {useEffect, useRef} from "react";
 export default function ImagePreview({file, onClose}) {
 
   const $img = useRef(null)
+  const $imgBody = useRef(null)
 
   useEffect(() => {
     loadImage().then(res => {})
@@ -17,6 +18,7 @@ export default function ImagePreview({file, onClose}) {
       }
     }
     $img.current.src = imgUrl
+    $imgBody.current.scrollTo({top: 0})
   }
 
   const loadImage = async () => {
@@ -41,14 +43,10 @@ export default function ImagePreview({file, onClose}) {
         <button onClick={onClose} type='button'>关闭</button>
       </div>
       <div className='container'>
-        <div className='image-prev btn-area' onClick={prevImage}>
-
-        </div>
-        <div className='image-body'>
+        <div className='image-body' ref={$imgBody}>
+          <div className='image-prev btn-area' onClick={prevImage}></div>
           <img ref={$img} alt='image-body' />
-        </div>
-        <div className='image-next btn-area' onClick={nextImage}>
-
+          <div className='image-next btn-area' onClick={nextImage}></div>
         </div>
       </div>
     </div>

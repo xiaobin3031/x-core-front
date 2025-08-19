@@ -45,9 +45,9 @@
 
 	& .ftp-container {
 		position: relative;
-		max-height: calc(100% - 30px);
+		max-height: calc(100% - 50px);
 		width: calc(100% - 200px);
-		padding-top: 30px;
+		padding-top: 20px;
 		padding-left: 100px;
 		padding-right: 100px;
 		overflow-y: scroll;
@@ -227,21 +227,39 @@
 
 	& .image-preview {
 		width: 100%;
+		position: absolute;
 		height: 100%;
+		top: 0;
+		left: 0;
 
 		& .container {
 			background-color: black;
-			position: absolute;
+			position: relative;
 			top: 0;
 			left: 0;
-			right: 0;
-			bottom: 0;
 
-			display: grid;
-			grid-template-columns: 300px 1fr 300px;
-
-			& img {
+			& .image-body {
 				width: 100%;
+				max-height: 100%;
+				overflow-y: scroll;
+
+				display: grid;
+				grid-template-columns: 300px 1fr 300px;
+
+				& img {
+					width: 100%;
+				}
+
+				& .btn-area {
+					&.image-prev {
+						top: 0;
+						left: 0;
+					}
+					&.image-next {
+						top: 0;
+						right: 0;
+					}
+				}
 			}
 		}
 
@@ -375,6 +393,45 @@
 				resize: none;
 				box-sizing: border-box;
 				border-radius: 10px;
+			}
+		}
+
+		& .download-plan-input {
+			display: none;
+
+			& > div {
+				width: 100%;
+				box-sizing: border-box;
+
+				&:first-child {
+					display: flex;
+					border-bottom: 1px solid #cccccc;
+					padding-bottom: 10px;
+					margin-bottom: 10px;
+
+					& > input {
+						width: 100%;
+						box-sizing: border-box;
+					}
+				}
+
+				& > textarea{
+					width: 100%;
+					box-sizing: border-box;
+					resize: none;
+				}
+			}
+
+			& .magnet-list {
+				margin-top: 5px;
+				padding-top: 5px;
+				border-top: 1px solid #cccccc;
+
+				& > div {
+					width: 100%;
+					overflow: hidden;
+					box-sizing: border-box;
+				}
 			}
 		}
 	}

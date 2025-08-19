@@ -399,9 +399,13 @@ export default function Ftp() {
     const newFoldInputRef = useRef(null)
     const newFileInputRef = useRef(null)
     const newDownloadInputRef = useRef(null)
+    const xpathExpressRef = useRef(null)
+    const downloadPlanUrlRef = useRef(null)
     const $progress = useRef(null)
     const selectedTab = useRef('0')
-    const childCls = ['file-input', 'fold-input', 'download-input']
+    const childCls = ['file-input', 'fold-input', 'download-input', 'download-plan-input']
+
+    const [magnets, setMagnets] = useState(['11111'])
 
     const changeTab = (e) => {
       let showCls
@@ -412,6 +416,8 @@ export default function Ftp() {
         showCls = 'fold-input'
       }else if(selectedTab.current === '3') {
         showCls = 'download-input'
+      }else if(selectedTab.current === '4') {
+        showCls = 'download-plan-input'
       }
       if(!!showCls) {
         const $dom = newFileInputRef.current.closest('.file-input-container')
@@ -443,8 +449,42 @@ export default function Ftp() {
           if(!magnet) return
           await ajax.post('/ftp/addDownload', {magnet})
           await freshRootDirs()
+          close()
           break
         }
+        case '4': {
+          const url = downloadPlanUrlRef.current.value
+          const xpath = xpathExpressRef.current.value
+          if(!url || !xpath) return
+          await ajax.post('/ftp/addDownloadPlan', {url, xpathExpression: xpath})
+          close()
+          break
+        }
+      }
+    }
+
+    const testDownloadPlan = async (e) => {
+      e.stopPropagation()
+      const url = downloadPlanUrlRef.current.value
+      const xpath = xpathExpressRef.current.value
+      if(!url || !xpath) return
+
+      let html = await ajax.get('/ftp/loadHtmlText?url=' + url, {})
+      if(!!html) {
+        // 解析 HTML 字符串为 DOM
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+
+        // 运行 XPath 表达式
+        const xpathResult = document.evaluate(xpath, doc, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+
+        let results = [];
+        for (let i = 0; i < xpathResult.snapshotLength; i++) {
+          results.push(xpathResult.snapshotItem(i).textContent.trim());
+        }
+        setMagnets([...results])
+      }else{
+        setMagnets([])
       }
     }
 
@@ -461,6 +501,7 @@ export default function Ftp() {
             <label><input type={'radio'} name={'add-file-radio'} value="1" onChange={changeTab}/>新建文件</label>
             <label><input type={'radio'} name={'add-file-radio'} value="2" onChange={changeTab}/>新建文件夹</label>
             <label><input type={'radio'} name={'add-file-radio'} value="3" onChange={changeTab}/>新建下载任务</label>
+            <label><input type={'radio'} name={'add-file-radio'} value="4" onChange={changeTab}/>新建下载计划</label>
           </div>
           <div className={'file-input-container'}>
             <div className={'file-input'}>
@@ -481,6 +522,22 @@ export default function Ftp() {
             </div>
             <div className={'download-input'}>
               <textarea ref={newDownloadInputRef} placeholder={'输入下载的磁力链接'}></textarea>
+            </div>
+            <div className={'download-plan-input'}>
+              <div>
+                <input ref={downloadPlanUrlRef} type={'text'} placeholder={'输入下载网址'} />
+                <button type={'button'} onClick={testDownloadPlan}>测试</button>
+              </div>
+              <div>
+                <textarea rows={3} ref={xpathExpressRef} placeholder={'请输入xpath表达式'}></textarea>
+              </div>
+              <div className={'magnet-list'}>
+                {
+                  magnets.length > 0 && magnets.filter((_, index) => index < 3).map(a => {
+                    return <div>{a}</div>
+                  })
+                }
+              </div>
             </div>
           </div>
         </div>
