@@ -226,9 +226,10 @@
 	}
 
 	& .image-preview {
-		width: 100%;
-		position: absolute;
 		height: 100%;
+		width: 100%;
+
+		position: fixed;
 		top: 0;
 		left: 0;
 
@@ -240,14 +241,25 @@
 
 			& .image-body {
 				width: 100%;
-				max-height: 100%;
-				overflow-y: scroll;
+				height: 100%;
+				overflow-y: auto;
 
-				display: grid;
-				grid-template-columns: 300px 1fr 300px;
+				& > div {
+					display: flex;
+					align-items: center;
+					flex-direction: column;
+				}
 
 				& img {
 					width: 100%;
+
+					@media screen and (min-width: 768px) {
+						width: 80%;
+					}
+
+					@media screen and (min-width: 1200px) {
+						width: 60%;
+					}
 				}
 
 				& .btn-area {

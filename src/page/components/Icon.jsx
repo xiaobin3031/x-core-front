@@ -153,3 +153,13 @@ export function ShareIcon({width="100%", height="100%", fill="#32489E"}){
     </svg>
   )
 }
+
+export function SortIcon({width="100%", height="100%", fill="#026BFF"}){
+  return (
+    <svg className="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width={width} height={height}>
+      <path
+        d="M352.32 927.968a32 32 0 1 0 64 0V114.144c0-28.064-22.752-50.784-50.816-50.784-23.712 0-45.376 13.504-55.808 34.816L191.456 339.52a32 32 0 0 0 57.472 28.16l103.36-211.04v771.328zM672 96a32 32 0 1 0-64 0v813.792c0 28.064 22.72 50.816 50.784 50.816 23.744 0 45.408-13.504 55.84-34.816l118.24-241.344a32 32 0 1 0-57.472-28.16L672 867.328V96z"
+        fill={fill}></path>
+    </svg>
+  )
+}

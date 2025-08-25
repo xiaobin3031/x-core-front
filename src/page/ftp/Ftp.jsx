@@ -9,7 +9,7 @@ import {
   FoldIcon, ModifyIcon,
   MoreIcon,
   MoveIcon,
-  RefreshIcon, ShareIcon,
+  RefreshIcon, SortIcon,
   TrashIcon, UnZipIcon
 } from '../components/Icon.jsx';
 import Input from '../components/Input.jsx'
@@ -340,12 +340,13 @@ export default function Ftp() {
     }
   }
 
-  const unzipFiles = (e) => {
+  const unzipFiles = async (e) => {
     e.stopPropagation()
     if(selectFiles.current.length === 0) return
 
     if(window.confirm('是否解压所选文件？')) {
-      ajax.post('/ftp/unzipFile', selectFiles.current.map(a => a.id)).then(() => {})
+      await ajax.post('/ftp/unzipFile', selectFiles.current.map(a => a.id))
+      unSelectFile()
     }
   }
 
@@ -355,6 +356,13 @@ export default function Ftp() {
 
     modalFlags.renameAll = true
     setModalFlags({...modalFlags})
+  }
+
+  const sortFilesInFold = async (e) => {
+    e.stopPropagation()
+    // 按名称升序排序
+    let res = await ajax.post('/ftp/sortFilesByNameAsc', {})
+    freshDirs(res)
   }
 
   const handleDragStart = (e, index) => {
@@ -532,9 +540,10 @@ export default function Ftp() {
                 <textarea rows={3} ref={xpathExpressRef} placeholder={'请输入xpath表达式'}></textarea>
               </div>
               <div className={'magnet-list'}>
+                {<div>total: {magnets.length}</div>}
                 {
                   magnets.length > 0 && magnets.filter((_, index) => index < 3).map(a => {
-                    return <div>{a}</div>
+                    return <div key={a}>{a}</div>
                   })
                 }
               </div>
@@ -650,6 +659,7 @@ export default function Ftp() {
             <span onClick={e => removeSelectFiles(e)}> <TrashIcon /> </span>
             <span onClick={e => unzipFiles(e)}> <UnZipIcon /></span>
             <span onClick={e => renameFiles(e)}> <ModifyIcon /></span>
+            <span onClick={e => sortFilesInFold(e)}> <SortIcon/></span>
             <span className='files-searcher'>
               <input name='search-files' onKeyDown={e => onEnter(e, searchFiles)}/>
             </span>

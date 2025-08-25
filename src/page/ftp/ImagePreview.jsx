@@ -3,22 +3,52 @@ import {useEffect, useRef} from "react";
 
 export default function ImagePreview({file, onClose}) {
 
-  const $img = useRef(null)
   const $imgBody = useRef(null)
+  const $imgList = useRef(null)
+  const loading = useRef(false)
 
   useEffect(() => {
-    loadImage().then(res => {})
+    initImage().then(() => {})
+
+    const el = $imgBody.current;
+    if (!el) return;
+
+    const onScroll = async () => {
+      if(loading.current) return
+      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 50) {
+        loading.current = true
+        // 滚动到底，加载下一张
+        await nextImage('/image-preview/next')
+        loading.current = false
+      }
+    };
+
+    el.addEventListener('scroll', onScroll);
+    return () => el.removeEventListener('scroll', onScroll);
   }, []);
 
+  const initImage = async () => {
+    await loadImage()
+    for (let i = 0; i < 3; i++) {
+      await nextImage()
+    }
+  }
+
   const showImage = (blob) => {
+    const $tmp = document.createElement('img')
+    $tmp.alt = 'image-item'
     const imgUrl = URL.createObjectURL(blob);
-    if(!$img.current.onload) {
-      $img.current.onload = () => {
+    if(!$tmp.onload) {
+      $tmp.onload = () => {
         URL.revokeObjectURL(imgUrl);
       }
     }
-    $img.current.src = imgUrl
-    $imgBody.current.scrollTo({top: 0})
+    $tmp.src = imgUrl
+    $imgList.current.appendChild($tmp)
+
+    while($imgList.current.children.length > 5) {
+      $imgList.current.removeChild($imgList.current.children[0])
+    }
   }
 
   const loadImage = async () => {
@@ -31,11 +61,6 @@ export default function ImagePreview({file, onClose}) {
     showImage(res)
   }
 
-  const prevImage = async () => {
-    let res = await ajax.post('/image-preview/prev', {}, {responseType: 'blob'})
-    showImage(res)
-  }
-
 
   return (
     <div className={'image-preview'}>
@@ -44,9 +69,7 @@ export default function ImagePreview({file, onClose}) {
       </div>
       <div className='container'>
         <div className='image-body' ref={$imgBody}>
-          <div className='image-prev btn-area' onClick={prevImage}></div>
-          <img ref={$img} alt='image-body' />
-          <div className='image-next btn-area' onClick={nextImage}></div>
+          <div ref={$imgList}></div>
         </div>
       </div>
     </div>
