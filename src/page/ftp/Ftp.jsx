@@ -1,6 +1,6 @@
 import './ftp.css'
 import ajax from "../util/ajax.js";
-import {use, useEffect, useRef, useState} from "react";
+import { useEffect, useRef, useState} from "react";
 import {
   BackIcon,
   CheckAllIcon,
@@ -15,12 +15,13 @@ import {
 import Input from '../components/Input.jsx'
 import {onEnter} from '../util/key.js'
 import VideoPlayer from './VideoPlayer.jsx'
-import Modal from "../components/Modal.jsx";
 import ScrollXText from "../components/ScrollXText.jsx";
 import ImagePreview from "./ImagePreview.jsx";
-import {FileUpload} from "../util/fileUpload.js";
+import {RenameAllModal} from "./RenameModal.jsx";
+import {AddFileModal} from "./AddFileModal.jsx";
+import {MoveDirModal} from "./MoveDirModal.jsx";
 
-export default function Ftp() {
+export default function Ftp(start) {
 
   const [files, setFiles] = useState([])
   const [headInfo, setHeadInfo] = useState({})
@@ -100,16 +101,36 @@ export default function Ftp() {
       let res = await ajax.post('/ftp/changeDir', {id: item.id})
       freshDirs(res)
       unSelectFile()
+      if(!!res.lastFile) {
+        if(window.confirm('有观看历史，是否进入?')) {
+          await itemClick(res.lastFile)
+        }
+      }
     }
   }
 
   const foldNameChange = async (e) => {
     const name = e.target.value
     if (!!name && !!name.trim()) {
-      let res = await ajax.post('/ftp/addFold', {dirName: name})
+      let foldId = await ajax.post('/ftp/addFold', {dirName: name})
       e.target.value = ""
       setAddFoldFlag(false)
-      freshDirs(res)
+      if(!!foldId) {
+        const fold = {id: foldId, fileFlag: false, name}
+        let idx = -1;
+        for (let i = 0; i < files.length; i++) {
+          if(files[i].fileFlag) {
+            idx = i
+            break
+          }
+        }
+        if(idx === -1) {
+          files.push(fold);
+        }else{
+          files.splice(idx, 0, fold);
+        }
+        setFiles([...files])
+      }
     } else {
       setAddFoldFlag(false)
       e.target.value = ''
@@ -133,166 +154,16 @@ export default function Ftp() {
     }
   }
 
-  function MoreActions({file}) {
-
-    const showDir = async (e) => {
-      e.stopPropagation()
-      modalFlags.move = true;
-      setModalFlags({...modalFlags})
-      setClickedFile(file)
-    }
-
-    const deleteFile = async (e) => {
-      e.stopPropagation()
-      if (window.confirm("确定要删除吗？")) {
-        let res = await ajax.post('/ftp/removeFile', {id: file.id, fileFlag: !!file.fileFlag})
-        freshDirs(res)
-      }
-    }
-
-    const renameFile = (e) => {
-      e.stopPropagation()
-      setClickedFile(file)
-      modalFlags.rename = true
-      setModalFlags({...modalFlags})
-    }
-
-    const downloadFile = async (e) => {
-      e.stopPropagation()
-      let res = await ajax.post('/ftp/prepareFile', {id: file.id})
-      ajax.downloadFile("/ftp/downloadFile?fileToken=" + res)
-      file.showMoreAction = false
-      setFiles([...files])
-    }
-
-    return (
-      <div className="more-actions">
-        <div className="action-list">
-          <div onClick={deleteFile}>Delete</div>
-          <div onClick={renameFile}>Rename</div>
-          <div onClick={showDir}>Move</div>
-          <div onClick={downloadFile}>Download</div>
-        </div>
-      </div>
-    )
-  }
-
   function Samples({file}) {
     return (
       <>
         {
-          !!file.fileFlag && <img width={'100%'} height={'100%'} src={`/file/sample/${file.id}.png`} alt=""/>
+          !!file.fileFlag && <img loading='lazy' width={'100%'} height={'100%'} src={`/file/sample/${file.id}.png`} alt=""/>
         }
         {
           !file.fileFlag && <FoldIcon/>
         }
       </>
-    )
-  }
-
-  function MoveDirModal({sfiles}) {
-
-    const foldByParentId = useRef({})
-    const selectDirId = useRef(-1)
-    const [dirs, setDirs] = useState([])
-
-    useEffect(() => {
-      let children = foldByParentId.current[0]
-      if (!!children) {
-        setDirs([[...children]])
-      } else {
-        ajax.get('/ftp/foldByParentId', {parentId: 0}).then(res => {
-          setDirs([res])
-        })
-      }
-    }, []);
-
-    const close = (e) => {
-      !!e && e.stopPropagation()
-      modalFlags.move = false
-      modalFlags.moveBatch = false
-      setModalFlags({...modalFlags})
-    }
-
-    const moveFile = async (e) => {
-      e.stopPropagation()
-      const toMoveFiles = sfiles.filter(a => a.foldId !== selectDirId.current)
-      if(toMoveFiles.length === 0) return
-      let res = await ajax.post('/ftp/moveFile', {files: toMoveFiles, foldId: selectDirId.current})
-      freshDirs(res)
-      close()
-    }
-
-    const showChildFold = async (e, index, dir) => {
-      const list = dirs.slice(0, index + 1)
-      list[index].forEach(a => a.active = dir.id === a.id)
-      let children = foldByParentId.current[dir.id]
-      selectDirId.current = dir.id
-      if (!!children) {
-        list.push(children)
-        setDirs([...list])
-      } else {
-        let res = await ajax.get('/ftp/foldByParentId', {parentId: dir.id})
-        foldByParentId.current[dir.id] = res
-        list.push(res)
-        setDirs([...list])
-      }
-    }
-
-    function DirItemDiv({subDirs, parentIndex}) {
-
-      return (
-        <div className={'sub-dirs'}>
-          {
-            subDirs.map(subDir => {
-              return (
-                <div className={`sub-dir-item ${subDir.active ? 'active': ''}`}
-                     key={`sub-dir-item-key-${subDir.id}`}
-                     onClick={e => showChildFold(e, parentIndex, subDir)}
-                >
-                  {subDir.name}
-                </div>
-              )
-            })
-          }
-        </div>
-      )
-    }
-
-    return (
-      <Modal title={'移动目录'} onClose={close} onOk={moveFile}>
-        {
-          dirs.length > 0 &&
-            dirs.filter(dir => dir.length > 0).map((dir, index) => {
-              return <DirItemDiv key={`sub-dirs-${index}`} subDirs={dir} parentIndex={index}/>
-            })
-        }
-      </Modal>
-    )
-  }
-
-  function RenameModal({file}) {
-
-    const [name, setName] = useState(file.name)
-
-    const renameFile = async (e) => {
-      e.stopPropagation()
-      if (!name) return;
-      let res = await ajax.post('/ftp/rename', [{fileFlag: file.fileFlag, id: file.id, newName: name}])
-      freshDirs(res)
-      close();
-    }
-
-    const close = (e) => {
-      !!e && e.stopPropagation()
-      modalFlags.rename = false
-      setModalFlags({...modalFlags})
-    }
-
-    return (
-      <Modal title={`重命名`} onClose={close} onOk={renameFile}>
-        <input value={name} onChange={e => setName(e.target.value)}/>
-      </Modal>
     )
   }
 
@@ -334,9 +205,10 @@ export default function Ftp() {
     if(selectFiles.current.length === 0) return
 
     if(window.confirm('是否删除这些文件/文件夹')) {
-      let res = await ajax.post('/ftp/removeFile', {files: selectFiles.current})
+      await ajax.post('/ftp/removeFile', {files: selectFiles.current})
+      const newList = files.filter(a => !selectFiles.current.some(b => b.id === a.id))
       unSelectFile()
-      freshDirs(res)
+      setFiles(newList)
     }
   }
 
@@ -382,8 +254,8 @@ export default function Ftp() {
       file.sort = idx;
     });
 
-    let res = await ajax.post('/ftp/sortFiles', updatedFiles.map((a, index) => ({id: a.id, fileFlag: a.fileFlag, sort: index})))
-    freshDirs(res)
+    await ajax.post('/ftp/sortFiles', updatedFiles.map((a, index) => ({id: a.id, fileFlag: a.fileFlag, sort: index})))
+    setFiles([...updatedFiles])
   };
 
   const handleDragOver = (e) => {
@@ -402,239 +274,41 @@ export default function Ftp() {
     setFiles([...list])
   }
 
-  function AddFileModal() {
-
-    const newFoldInputRef = useRef(null)
-    const newFileInputRef = useRef(null)
-    const newDownloadInputRef = useRef(null)
-    const xpathExpressRef = useRef(null)
-    const downloadPlanUrlRef = useRef(null)
-    const $progress = useRef(null)
-    const selectedTab = useRef('0')
-    const childCls = ['file-input', 'fold-input', 'download-input', 'download-plan-input']
-
-    const [magnets, setMagnets] = useState(['11111'])
-
-    const changeTab = (e) => {
-      let showCls
-      selectedTab.current = e.target.value
-      if(selectedTab.current === '1') {
-        showCls = 'file-input'
-      }else if(selectedTab.current === '2') {
-        showCls = 'fold-input'
-      }else if(selectedTab.current === '3') {
-        showCls = 'download-input'
-      }else if(selectedTab.current === '4') {
-        showCls = 'download-plan-input'
-      }
-      if(!!showCls) {
-        const $dom = newFileInputRef.current.closest('.file-input-container')
-        childCls.filter(a => a !== showCls).forEach(a => $dom.getElementsByClassName(a)[0].style.display = 'none')
-        $dom.getElementsByClassName(showCls)[0].style.display = 'block'
-      }
-    }
-
-    const uploadFile = async (e) => {
-      e.stopPropagation()
-      switch(selectedTab.current) {
-        case '1': {  // add file
-          let file = newFileInputRef.current.files[0]
-          let fileUpload = new FileUpload(file, $progress.current)
-          let res = await fileUpload.upload()
-          if(res !== 0) {
-            alert('上传失败')
-            return
-          }
-          close()
-          break
-        }
-        case '2': { // add fold
-
-          break
-        }
-        case '3': { // add download
-          const magnet = newDownloadInputRef.current.value
-          if(!magnet) return
-          await ajax.post('/ftp/addDownload', {magnet})
-          await freshRootDirs()
-          close()
-          break
-        }
-        case '4': {
-          const url = downloadPlanUrlRef.current.value
-          const xpath = xpathExpressRef.current.value
-          if(!url || !xpath) return
-          await ajax.post('/ftp/addDownloadPlan', {url, xpathExpression: xpath})
-          close()
-          break
-        }
-      }
-    }
-
-    const testDownloadPlan = async (e) => {
-      e.stopPropagation()
-      const url = downloadPlanUrlRef.current.value
-      const xpath = xpathExpressRef.current.value
-      if(!url || !xpath) return
-
-      let html = await ajax.get('/ftp/loadHtmlText?url=' + url, {})
-      if(!!html) {
-        // 解析 HTML 字符串为 DOM
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, "text/html");
-
-        // 运行 XPath 表达式
-        const xpathResult = document.evaluate(xpath, doc, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-
-        let results = [];
-        for (let i = 0; i < xpathResult.snapshotLength; i++) {
-          results.push(xpathResult.snapshotItem(i).textContent.trim());
-        }
-        setMagnets([...results])
-      }else{
-        setMagnets([])
-      }
-    }
-
-    const close = (e) => {
-      !!e && e.stopPropagation()
-      modalFlags.fileAdd = false
-      setModalFlags({...modalFlags})
-    }
-
-    return (
-      <Modal title={'添加文件/文件夹'} onClose={close} onOk={uploadFile}>
-        <div className={'add-file-modal'}>
-          <div className='radios'>
-            <label><input type={'radio'} name={'add-file-radio'} value="1" onChange={changeTab}/>新建文件</label>
-            <label><input type={'radio'} name={'add-file-radio'} value="2" onChange={changeTab}/>新建文件夹</label>
-            <label><input type={'radio'} name={'add-file-radio'} value="3" onChange={changeTab}/>新建下载任务</label>
-            <label><input type={'radio'} name={'add-file-radio'} value="4" onChange={changeTab}/>新建下载计划</label>
-          </div>
-          <div className={'file-input-container'}>
-            <div className={'file-input'}>
-              <div>
-                <input ref={newFileInputRef} type="file"/>
-              </div>
-              <div className={'progress'} ref={$progress}>
-                <div className={'progress-bg'}></div>
-                <div className={'progress-text'}>
-                  <span className='current-chunk'>0</span>
-                  <span style={{"marginLeft": '5px', "marginRight": '5px'}}>/</span>
-                  <span className='total-chunk'>0</span>
-                </div>
-              </div>
-            </div>
-            <div className={'fold-input'}>
-              <input type={'text'} ref={newFoldInputRef} placeholder={'输入文件夹名称'}/>
-            </div>
-            <div className={'download-input'}>
-              <textarea ref={newDownloadInputRef} placeholder={'输入下载的磁力链接'}></textarea>
-            </div>
-            <div className={'download-plan-input'}>
-              <div>
-                <input ref={downloadPlanUrlRef} type={'text'} placeholder={'输入下载网址'} />
-                <button type={'button'} onClick={testDownloadPlan}>测试</button>
-              </div>
-              <div>
-                <textarea rows={3} ref={xpathExpressRef} placeholder={'请输入xpath表达式'}></textarea>
-              </div>
-              <div className={'magnet-list'}>
-                {<div>total: {magnets.length}</div>}
-                {
-                  magnets.length > 0 && magnets.filter((_, index) => index < 3).map(a => {
-                    return <div key={a}>{a}</div>
-                  })
-                }
-              </div>
-            </div>
-          </div>
-        </div>
-      </Modal>
-    )
-  }
-
-  function RenameAllModal({sfiles}) {
-    const [list, setList] = useState(sfiles.map(a => {
-      return {
-        id: a.id,
-        fileFlag: a.fileFlag,
-        name: a.name,
-        newName: a.name
-      }
-    }))
-
-    const $find = useRef(null), $replace = useRef(null)
-
-    const close = (e) => {
-      !!e && e.stopPropagation()
-      modalFlags.renameAll = false
-      setModalFlags({...modalFlags})
-    }
-
-    const renameAll = async (e) => {
-      e.stopPropagation()
-      let updateList = list.filter(a => a.newName !== a.name).map(a => {
-        return {
-          id: a.id,
-          fileFlag: a.fileFlag,
-          newName: a.newName
+  const renameAllOk = (list) => {
+    if(!!list && list.length > 0) {
+      files.forEach(a => {
+        const sf = list.filter(b => a.id === b.id)[0]
+        if(!sf) {
+          a.name = sf.name
         }
       })
-      if(updateList.length > 0) {
-        await ajax.post('/ftp/rename', updateList)
-      }
-      close()
+      setFiles([...files])
+    }
+  }
+
+  const renameAllClose = () => {
+    modalFlags.renameAll = false
+    setModalFlags({...modalFlags})
+    unSelectFile()
+  }
+
+  const addFileClose = () => {
+    modalFlags.fileAdd = false
+    setModalFlags({...modalFlags})
+  }
+  const addFileOk = async (tab) => {
+    if(tab === '1' || tab === '2') {
       await freshRootDirs()
     }
+  }
 
-    const replace = () => {
-      const findTxt = $find.current.value, replaceTxt = $replace.current.value
-      if(!findTxt || !replaceTxt) return
-      let reg = new RegExp(findTxt)
-      list.filter(a => reg.test(a.name)).forEach(a => a.newName = a.name.replace(reg, replaceTxt))
-      setList([...list])
-    }
-
-    const reduction = () => {
-      list.forEach(a => a.newName = a.name)
-      setList([...list])
-    }
-
-    return (
-      <Modal title={'批量重命名'} onOk={renameAll} onClose={close}>
-        <div className={'rename-all-container'}>
-          <div className={'replace-regexp'}>
-            <div className={'find'}>
-              <input ref={$find} placeholder='请输入正则表达式'/>
-              <button type={'button'} onClick={reduction}>Reduction</button>
-            </div>
-            <div className={'replace'}>
-              <input ref={$replace} placeholder='请输入正则表达式'/>
-              <button type={'button'} onClick={replace}>Replace</button>
-            </div>
-          </div>
-          <div className={'replace-text'}>
-            <table>
-              <thead>
-              <tr>
-                <th>文件名称</th>
-                <th>新文件名称</th>
-              </tr>
-              </thead>
-              <tbody>
-              {list.map((a, index) => (
-                <tr key={`rename-file-${a.id}-${index}`}>
-                  <td>{a.name}</td>
-                  <td><textarea value={a.newName} onChange={e => {a.newName = e.target.value; setList([...list])}}></textarea></td>
-                </tr>
-              ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </Modal>
-    )
+  const moveDirOk = async (foldId) => {
+    const list = files.filter(a => a.foldId !== foldId)
+    setFiles([...list])
+  }
+  const moveDirClose = () => {
+    modalFlags.moveBatch = false
+    setModalFlags({...modalFlags})
   }
 
   return (
@@ -692,7 +366,6 @@ export default function Ftp() {
                   </div>
                   <div className='sample' onClick={() => itemClick(file)}>
                     <Samples file={file} />
-                    {!!file.showMoreAction && <MoreActions file={file}/>}
                   </div>
                 </div>
               )
@@ -702,11 +375,9 @@ export default function Ftp() {
         {!!playVideo && <VideoPlayer fileToken={fileTokens['video']} closePlayer={() => setPlayVideo(false)}/>}
         {!!showImage && <ImagePreview file={clickedFile} onClose={() => setShowImage(false)}/>}
       </div>
-      {!!modalFlags.rename && <RenameModal file={clickedFile}/>}
-      {!!modalFlags.move && <MoveDirModal sfiles={[clickedFile]} /> }
-      {!!modalFlags.moveBatch && <MoveDirModal sfiles={selectFiles.current} /> }
-      {!!modalFlags.fileAdd && <AddFileModal/>}
-      {!!modalFlags.renameAll && <RenameAllModal sfiles={selectFiles.current || files}/>}
+      {!!modalFlags.moveBatch && <MoveDirModal sfiles={selectFiles.current} onOk={moveDirOk} onClose={moveDirClose} /> }
+      {!!modalFlags.fileAdd && <AddFileModal onOk={addFileOk} onClose={addFileClose}/>}
+      {!!modalFlags.renameAll && <RenameAllModal sfiles={selectFiles.current} onOk={renameAllOk} onClose={renameAllClose}/>}
     </>
   )
 }

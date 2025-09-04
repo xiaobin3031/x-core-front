@@ -6,6 +6,7 @@ export default function ImagePreview({file, onClose}) {
   const $imgBody = useRef(null)
   const $imgList = useRef(null)
   const loading = useRef(false)
+  const stopped = useRef(false)
 
   useEffect(() => {
     initImage().then(() => {})
@@ -18,8 +19,12 @@ export default function ImagePreview({file, onClose}) {
       if (el.scrollTop + el.clientHeight >= el.scrollHeight - 50) {
         loading.current = true
         // 滚动到底，加载下一张
-        await nextImage('/image-preview/next')
+        await nextImage()
         loading.current = false
+      }else if (el.scrollTop <= 50) {
+        loading.current = true;
+        await prevImage()  // 或者调用 prevImage()
+        loading.current = false;
       }
     };
 
@@ -57,15 +62,40 @@ export default function ImagePreview({file, onClose}) {
   }
 
   const nextImage = async () => {
+    if(stopped.current) return
     let res = await ajax.post('/image-preview/next', {}, {responseType: 'blob'})
     showImage(res)
   }
 
+  const prevImage = async () => {
+    let res = await ajax.post('/image-preview/prev', {}, {responseType: 'blob'})
+    if(!res) return
+    const $tmp = document.createElement('img')
+    $tmp.alt = 'image-item'
+    const imgUrl = URL.createObjectURL(res);
+    if(!$tmp.onload) {
+      $tmp.onload = () => {
+        URL.revokeObjectURL(imgUrl);
+      }
+    }
+    $tmp.src = imgUrl
+    $imgList.current.insertBefore($tmp, $imgList.current.children[0])
+  }
+
+  const toggleStop = (e) => {
+    stopped.current = !stopped.current
+    if(stopped.current) {
+      e.target.innerText = '继续'
+    }else{
+      e.target.innerText = '暂停'
+    }
+  }
 
   return (
     <div className={'image-preview'}>
       <div className='close-btn'>
         <button onClick={onClose} type='button'>关闭</button>
+        <button style={{marginLeft: '10px'}} onClick={toggleStop} type='button'>暂停</button>
       </div>
       <div className='container'>
         <div className='image-body' ref={$imgBody}>
