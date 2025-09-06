@@ -243,15 +243,13 @@
 				width: 100%;
 				height: 100%;
 				overflow-y: auto;
+				display: flex;
+				align-items: center;
+				flex-direction: column;
 
 				& > div {
-					display: flex;
-					align-items: center;
-					flex-direction: column;
-				}
-
-				& img {
 					width: 100%;
+					position: relative;
 
 					@media screen and (min-width: 768px) {
 						width: 80%;
@@ -260,6 +258,10 @@
 					@media screen and (min-width: 1200px) {
 						width: 60%;
 					}
+				}
+
+				& img {
+					width: 100%;
 				}
 
 				& .btn-area {
@@ -280,6 +282,17 @@
 			right: 30px;
 			top: 30px;
 			z-index: 1000;
+		}
+
+		& .index {
+			background-color: white;
+			position: fixed;
+			right: 50px;
+			bottom: 30px;
+			z-index: 1000;
+
+			padding: 20px;
+			border-radius: 50%;
 		}
 	}
 

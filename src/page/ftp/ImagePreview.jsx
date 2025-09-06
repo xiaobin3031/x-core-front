@@ -1,12 +1,13 @@
 import ajax from "../util/ajax.js";
-import {useEffect, useRef} from "react";
+import {useEffect, useRef, useState} from "react";
 
 export default function ImagePreview({file, onClose}) {
 
   const $imgBody = useRef(null)
-  const $imgList = useRef(null)
+  const $index = useRef(null)
   const loading = useRef(false)
   const stopped = useRef(false)
+  const [imgs, setImgs] = useState([])
 
   useEffect(() => {
     initImage().then(() => {})
@@ -16,7 +17,7 @@ export default function ImagePreview({file, onClose}) {
 
     const onScroll = async () => {
       if(loading.current) return
-      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 50) {
+      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 100) {
         loading.current = true
         // 滚动到底，加载下一张
         await nextImage()
@@ -39,47 +40,33 @@ export default function ImagePreview({file, onClose}) {
     }
   }
 
-  const showImage = (blob) => {
-    const $tmp = document.createElement('img')
-    $tmp.alt = 'image-item'
-    const imgUrl = URL.createObjectURL(blob);
-    if(!$tmp.onload) {
-      $tmp.onload = () => {
-        URL.revokeObjectURL(imgUrl);
-      }
+  const showImage = (res) => {
+    if(!res || !res.img) return null
+    const id = `img-preview-${res.sort === null ? res.fileId : res.sort}`
+    res.id = id
+    if(imgs.some(a => a.id === id)) return;
+    imgs.push(res);
+    if(imgs.length > 5) {
+      imgs.splice(0, imgs.length - 5);
     }
-    $tmp.src = imgUrl
-    $imgList.current.appendChild($tmp)
-
-    while($imgList.current.children.length > 5) {
-      $imgList.current.removeChild($imgList.current.children[0])
-    }
+    setImgs([...imgs])
+    $index.current.innerText = res.sort === null ? res.fileId : (res.sort + 1)
   }
 
   const loadImage = async () => {
-    let res = await ajax.post('/image-preview/show', {fileId: file.id}, {responseType: 'blob'})
+    let res = await ajax.post('/image-preview/show', {fileId: file.id})
     showImage(res)
   }
 
   const nextImage = async () => {
     if(stopped.current) return
-    let res = await ajax.post('/image-preview/next', {}, {responseType: 'blob'})
+    let res = await ajax.post('/image-preview/next', {})
     showImage(res)
   }
 
   const prevImage = async () => {
-    let res = await ajax.post('/image-preview/prev', {}, {responseType: 'blob'})
-    if(!res) return
-    const $tmp = document.createElement('img')
-    $tmp.alt = 'image-item'
-    const imgUrl = URL.createObjectURL(res);
-    if(!$tmp.onload) {
-      $tmp.onload = () => {
-        URL.revokeObjectURL(imgUrl);
-      }
-    }
-    $tmp.src = imgUrl
-    $imgList.current.insertBefore($tmp, $imgList.current.children[0])
+    let res = await ajax.post('/image-preview/prev', {})
+    showImage(res)
   }
 
   const toggleStop = (e) => {
@@ -99,8 +86,17 @@ export default function ImagePreview({file, onClose}) {
       </div>
       <div className='container'>
         <div className='image-body' ref={$imgBody}>
-          <div ref={$imgList}></div>
+          {
+            imgs.length > 0 && imgs.map(a => {
+              return <div key={`image-preview-${a.id}`}>
+                <img src={`data:${a.fileType};base64,${a.img}`}  alt='img'/>
+              </div>
+            })
+          }
         </div>
+      </div>
+      <div className={'index'} ref={$index}>
+
       </div>
     </div>
   )
