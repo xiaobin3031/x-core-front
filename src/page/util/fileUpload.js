@@ -57,7 +57,6 @@ export class FileUpload {
       $el.nextSibling.getElementsByClassName('current-chunk')[0].innerText = currentChunk
     }
     await ajax.post('/file-upload/finish', {fileId: uploadId})
-    $el.nextSibling.innerText = '上传完成'
     return 0
   }
 

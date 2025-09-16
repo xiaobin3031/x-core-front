@@ -11,6 +11,8 @@ export function AddFileModal({onOk, onClose}) {
     const xpathExpressRef = useRef(null)
     const downloadPlanUrlRef = useRef(null)
     const $progress = useRef(null)
+    const $uploadingFile = useRef(null)
+    const $leftFileCount = useRef(null)
     const selectedTab = useRef('0')
     const childCls = ['file-input', 'fold-input', 'download-input', 'download-plan-input']
 
@@ -39,13 +41,18 @@ export function AddFileModal({onOk, onClose}) {
       e.stopPropagation()
       switch(selectedTab.current) {
         case '1': {  // add file
-          let file = newFileInputRef.current.files[0]
-          let fileUpload = new FileUpload(file, $progress.current)
-          let res = await fileUpload.upload()
-          if(res !== 0) {
-            alert('上传失败')
-            return
+          for(let i=0;i<newFileInputRef.current.files.length;i++) {
+            const file = newFileInputRef.current.files[i]
+            $uploadingFile.current.innerText = file.name
+            $leftFileCount.current.innerText = newFileInputRef.current.files.length - i - 1
+            let fileUpload = new FileUpload(file, $progress.current)
+            let res = await fileUpload.upload()
+            if(res !== 0) {
+              alert('上传失败')
+              return
+            }
           }
+          onClose()
           break
         }
         case '2': { // add fold
@@ -56,6 +63,7 @@ export function AddFileModal({onOk, onClose}) {
           const magnet = newDownloadInputRef.current.value
           if(!magnet) return
           await ajax.post('/ftp/addDownload', {magnet})
+          onOk(selectedTab.current)
           break
         }
         case '4': {
@@ -63,10 +71,10 @@ export function AddFileModal({onOk, onClose}) {
           const xpath = xpathExpressRef.current.value
           if(!url || !xpath) return
           await ajax.post('/ftp/addDownloadPlan', {url, xpathExpression: xpath})
+          onOk(selectedTab.current)
           break
         }
       }
-      onOk(selectedTab.current)
     }
 
     const testDownloadPlan = async (e) => {
@@ -111,7 +119,14 @@ export function AddFileModal({onOk, onClose}) {
           <div className={'file-input-container'}>
             <div className={'file-input'}>
               <div>
-                <input ref={newFileInputRef} type="file"/>
+                <input ref={newFileInputRef} type="file" multiple={true}/>
+              </div>
+              <div className={'uploading-file'}>
+                <span>正在上传：</span>
+                <span ref={$uploadingFile}></span>
+                <span>剩余</span>
+                <b ref={$leftFileCount}></b>
+                <span>个</span>
               </div>
               <div className={'progress'} ref={$progress}>
                 <div className={'progress-bg'}></div>

@@ -5,33 +5,63 @@ export default function ImagePreview({file, onClose}) {
 
   const $imgBody = useRef(null)
   const $index = useRef(null)
-  const loading = useRef(false)
   const stopped = useRef(false)
   const [imgs, setImgs] = useState([])
 
+  let loading = false
   useEffect(() => {
     initImage().then(() => {})
 
     const el = $imgBody.current;
     if (!el) return;
 
-    const onScroll = async () => {
-      if(loading.current) return
-      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 100) {
-        loading.current = true
+    const ua = navigator.userAgent;
+
+    // 排除移动端和 iPad
+    const isMobile = /Android|iPhone|iPod|iPad|Mobile/i.test(ua);
+    const isTablet = /Tablet|iPad/i.test(ua);
+
+    const isPc = !isMobile && !isTablet;
+    const offsetTop = isPc ? 100 : 10
+
+    let lastScrollTime = 0
+    const onScroll = () => {
+      const now = Date.now()
+      if (!isPc && now - lastScrollTime < 500) return;
+      lastScrollTime = now
+
+      if(loading) return
+
+      const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - offsetTop
+      const nearTop = el.scrollTop <= 10
+
+      if (nearBottom) {
+        loading = true
         // 滚动到底，加载下一张
-        await nextImage()
-        loading.current = false
-      }else if (el.scrollTop <= 50) {
-        loading.current = true;
-        await prevImage()  // 或者调用 prevImage()
-        loading.current = false;
+        nextImage().finally(() => loading = false)
+      }else if (nearTop) {
+        loading = true;
+        prevImage().finally(() => loading = false)  // 或者调用 prevImage()
       }
     };
 
     el.addEventListener('scroll', onScroll);
     return () => el.removeEventListener('scroll', onScroll);
   }, []);
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        console.log('元素进入屏幕:', entry.target);
+        // 一次后停止监听
+        observer.unobserve(entry.target);
+        nextImage().finally(() => loading = false)
+      }
+    });
+  }, {
+    root: null, // 默认为视口
+    threshold: 0.01 // 元素 10% 可见时触发（可以设置为 0~1）
+  });
 
   const initImage = async () => {
     await loadImage()
@@ -46,6 +76,7 @@ export default function ImagePreview({file, onClose}) {
     res.id = id
     if(imgs.some(a => a.id === id)) return;
     imgs.push(res);
+    imgs.sort((a, b)=> a.id >= b.id ? 1 : -1)
     if(imgs.length > 5) {
       imgs.splice(0, imgs.length - 5);
     }
