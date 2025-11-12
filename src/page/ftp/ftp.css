@@ -275,6 +275,24 @@
 					}
 				}
 			}
+
+			& .prev-image {
+				cursor: pointer;
+				width: 20%;
+				height: 100%;
+				position: absolute;
+				top: 0;
+				left: 0;
+			}
+
+			& .next-image {
+				cursor: pointer;
+				width: 20%;
+				height: 100%;
+				position: absolute;
+				right: 0;
+				top: 0;
+			}
 		}
 
 		& .close-btn {

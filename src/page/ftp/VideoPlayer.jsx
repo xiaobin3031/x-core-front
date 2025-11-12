@@ -1,12 +1,16 @@
 // 视频播放器
-
+import user from "../util/user.js";
 import {DeleteIcon} from "../components/Icon.jsx";
 import {useRef} from "react";
 
-export default function VideoPlayer({fileToken, closePlayer}) {
+export default function VideoPlayer({file, closePlayer}) {
 
   const player = useRef(null)
-  let src = `${import.meta.env.VITE_API_BASE}:${import.meta.env.VITE_API_PORT}/media/play?fileToken=${fileToken}`
+  const token = !!user.get() && user.get().token
+  let src = `${import.meta.env.VITE_API_BASE}:${import.meta.env.VITE_API_PORT}/media/play?fileId=${file.id}&token=${token}`
+  if(!!file.start && !!file.end) {
+    src += `#t=${file.start},${file.end}`
+  }
 
   return (
     <div className={"video-player"} ref={player} style={{maxWidth: '100%', maxHeight: '100%'}}>

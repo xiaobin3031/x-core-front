@@ -28,7 +28,6 @@ export default function Ftp(start) {
   const [addFoldFlag, setAddFoldFlag] = useState(false)
   const [playVideo, setPlayVideo] = useState(false)
   const [showImage, setShowImage] = useState(false)
-  const [fileTokens, setFileTokens] = useState({})
   const [modalFlags, setModalFlags] = useState({})
   const [clickedFile, setClickedFile] = useState(null)
 
@@ -86,8 +85,7 @@ export default function Ftp(start) {
   const itemClick = async (item) => {
     if (!!item.fileFlag) {
       if (isVideo(item)) {
-        fileTokens.video = await ajax.post('/ftp/prepareFile', {id: item.id, prepareForPlay: true})
-        setFileTokens({...fileTokens})
+        setClickedFile(item)
         setPlayVideo(true)
       }else if(isImage(item)) {
         setClickedFile( item)
@@ -372,7 +370,7 @@ export default function Ftp(start) {
             })
           }
         </div>
-        {!!playVideo && <VideoPlayer fileToken={fileTokens['video']} closePlayer={() => setPlayVideo(false)}/>}
+        {!!playVideo && <VideoPlayer file={clickedFile} closePlayer={() => setPlayVideo(false)}/>}
         {!!showImage && <ImagePreview file={clickedFile} onClose={() => setShowImage(false)}/>}
       </div>
       {!!modalFlags.moveBatch && <MoveDirModal sfiles={selectFiles.current} onOk={moveDirOk} onClose={moveDirClose} /> }
