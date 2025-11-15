@@ -1,4 +1,5 @@
 import user from "./user.js";
+import message from "../components/Message.jsx";
 const defaultAjax6Option = {
   type: 'POST',
   // contentType: 'application/x-www-form-urlencoded;charset=utf-8'
@@ -43,8 +44,7 @@ function uploadFile(path, file, progressCb, data = {}, options = {}) {
           resolve(res.data)
           return
         } else {
-          // todo 显示错误
-          window.alert(res.msg)
+          message.error({msg: res.msg})
         }
       }
       reject(res)
@@ -66,7 +66,7 @@ function ajax6(path, data = {}, options = {}) {
   return new Promise((resolve, reject) => {
     const userInfo =user.get()
     if(!userInfo && notLoginUrl.indexOf(path) === -1) {
-      console.log('not login')
+      message.error({msg: 'not login'})
       reject()
       return
     }
