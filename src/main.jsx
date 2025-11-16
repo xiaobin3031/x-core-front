@@ -56,9 +56,13 @@ function Navs() {
     const agreeAutoRegister = useRef(null);
     const usernameInput = useRef(null)
     const passwordInput = useRef(null);
+    const loginCallback = useRef(null)
 
     function clickNav(nav) {
         if (!user.isLogin()) {
+            loginCallback.current = () => {
+                setNavItem(nav.component)
+            }
             setShowLoginModal(true)
             return
         }
@@ -81,6 +85,10 @@ function Navs() {
         user.save(res)
         setUserInfo(res)
         setShowLoginModal(false)
+        if (!!loginCallback.current) {
+            loginCallback.current()
+            loginCallback.current = null
+        }
     }
 
     return (

@@ -82,7 +82,7 @@ export default function Ftp() {
         return !!file.fileType && file.fileType === 'application/pdf';
     }
 
-    const itemClick = async (item) => {
+    const itemClick = async (e, item) => {
         if (!!item.fileFlag) {
             if (isVideo(item)) {
                 setClickedFile(item)
@@ -174,6 +174,18 @@ export default function Ftp() {
         }
     }
 
+    const fileCheck2 = (e, file) => {
+        const $inputs = e.target.closest('.ftp-item').getElementsByTagName('input')
+        const $checkBox = Array.from($inputs).filter(a => a.name === 'file-checkbox')[0]
+        if ($checkBox.checked) {
+            $checkBox.checked = false
+            selectFiles.current = selectFiles.current.filter(a => a.id !== file.id)
+        } else {
+            $checkBox.checked = true
+            selectFiles.current.push({id: file.id, fileFlag: file.fileFlag, name: file.name})
+        }
+    }
+
     const batchMoveFile = (e) => {
         e.stopPropagation()
         if (selectFiles.current.length === 0) return
@@ -217,7 +229,7 @@ export default function Ftp() {
 
         if (window.confirm('是否解压所选文件？')) {
             await ajax.post('/ftp/unzipFile', selectFiles.current.map(a => a.id))
-            unSelectFile()
+            await freshRootDirs()
         }
     }
 
@@ -281,11 +293,12 @@ export default function Ftp() {
         if (!!list && list.length > 0) {
             files.forEach(a => {
                 const sf = list.filter(b => a.id === b.id)[0]
-                if (!sf) {
+                if (!!sf) {
                     a.name = sf.name
                 }
             })
             setFiles([...files])
+            renameAllClose()
         }
     }
 
@@ -372,7 +385,7 @@ export default function Ftp() {
                                         </div>
                                         <span className='icon' onClick={(e) => moreAction(e, file)}><MoreIcon/></span>
                                     </div>
-                                    <div className='sample' onClick={() => itemClick(file)}>
+                                    <div className='sample' onClick={e => fileCheck2(e, file)} onDoubleClick={e => itemClick(e, file)}>
                                         <Samples file={file}/>
                                     </div>
                                 </div>
