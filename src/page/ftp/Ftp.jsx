@@ -10,7 +10,7 @@ import {
     MoreIcon,
     MoveIcon,
     RefreshIcon, SortIcon,
-    TrashIcon, UnZipIcon
+    TrashIcon, UnZipIcon, MirgrateIcon
 } from '../components/Icon.jsx';
 import Input from '../components/Input.jsx'
 import {onEnter} from '../util/key.js'
@@ -157,7 +157,7 @@ export default function Ftp() {
             <>
                 {
                     !!file.fileFlag &&
-                    <img loading='lazy' width={'100%'} height={'100%'} src={`/file/sample/${file.id}.png`} alt=""/>
+                    <img loading='lazy' width={'100%'} height={'100%'} src={`/file/sample/${file.id}.webp`} alt=""/>
                 }
                 {
                     !file.fileFlag && <FoldIcon/>
@@ -248,6 +248,11 @@ export default function Ftp() {
         freshDirs(res)
     }
 
+    const migrateFiles = async (e) => {
+        e.stopPropagation()
+        ajax.post('/ftp/migrateFiles', {}).then(res => {})
+    }
+
     const handleDragStart = (e, index) => {
         e.dataTransfer.setData("dragIndex", index);
     };
@@ -294,7 +299,7 @@ export default function Ftp() {
             files.forEach(a => {
                 const sf = list.filter(b => a.id === b.id)[0]
                 if (!!sf) {
-                    a.name = sf.name
+                    a.name = sf.newName
                 }
             })
             setFiles([...files])
@@ -354,14 +359,23 @@ export default function Ftp() {
                         <span onClick={e => unzipFiles(e)}> <UnZipIcon/></span>
                         <span onClick={e => renameFiles(e)}> <ModifyIcon/></span>
                         <span onClick={e => sortFilesInFold(e)}> <SortIcon/></span>
+                        <span onClick={e => migrateFiles(e)}> <MirgrateIcon/></span>
                         <span className='files-searcher'>
               <input name='search-files' onKeyDown={e => onEnter(e, searchFiles)}/>
             </span>
                     </div>
-                    <div className="path">
+                    {/* <div className="path">
                         {
                             !!headInfo.path && headInfo.path.length > 0 && headInfo.path[headInfo.path.length - 1]
                         }
+                    </div> */}
+                    <div className="path">
+                        {headInfo.pathList?.map((p, i) => (
+                            <span key={i} className="path-segment">
+                                {p}
+                                {i !== headInfo.pathList.length - 1 && <span className="separator">/</span>}
+                            </span>
+                        ))}
                     </div>
                 </div>
                 <div className='ftp-container' ref={ftpContainerRef}>

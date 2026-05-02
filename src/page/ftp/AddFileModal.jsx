@@ -2,6 +2,7 @@ import {useRef, useState} from "react";
 import ajax from "../util/ajax.js";
 import Modal from "../components/Modal.jsx";
 import {FileUpload} from "../util/fileUpload.js";
+import message from "../components/Message.jsx";
 
 export function AddFileModal({onOk, onClose}) {
 
@@ -64,6 +65,8 @@ export function AddFileModal({onOk, onClose}) {
           if(!magnet) return
           await ajax.post('/ftp/addDownload', {magnet})
           onOk(selectedTab.current)
+          message.success({msg: '添加成功'})
+          newDownloadInputRef.current.value = ''
           break
         }
         case '4': {
